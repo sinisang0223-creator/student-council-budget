@@ -158,6 +158,36 @@ button:hover {
   font-size: 0.9rem;
 }
 
+/* 표 안의 [금액] [입력] 칸 */
+.spend-form {
+  display: flex;
+  gap: 6px;
+}
+
+.spend-form input {
+  width: 110px;
+  padding: 6px 8px;
+  font-size: 0.95rem;
+  border: 1px solid #c4c9d0;
+  border-radius: 6px;
+}
+
+.spend-form button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+/* 행 바로 아래의 오류 문구 행. 위 행과 붙어 보이게 위쪽 여백을 줄인다 */
+.error-row td {
+  padding-top: 0;
+  margin: 0;
+}
+
+/* 바로 아래에 오류 행이 있는 행은 밑줄을 없애서 둘이 한 묶음으로 보이게 한다 */
+tr:has(+ .error-row) td {
+  border-bottom: none;
+}
+
 /* 휴대폰처럼 좁은 화면에서는 카드를 세로로 쌓는다 */
 @media (max-width: 600px) {
   .summary {

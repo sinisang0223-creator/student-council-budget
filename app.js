@@ -49,8 +49,70 @@ function renderEvents() {
     statusCell.appendChild(badge);
     tr.appendChild(statusCell);
 
+    tr.appendChild(makeSpendCell(event, tr));
+
     tbody.appendChild(tr);
   }
+}
+
+// 행 오른쪽의 [금액] [입력] 칸을 만든다
+// form으로 감싸서 버튼을 눌러도, 금액 칸에서 Enter를 눌러도 입력된다
+function makeSpendCell(event, tr) {
+  const form = document.createElement("form");
+  form.className = "spend-form";
+  form.noValidate = true;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.inputMode = "numeric";
+  input.placeholder = "금액";
+  // 화면 읽기 프로그램이 어느 행사의 칸인지 알 수 있게 이름을 붙인다
+  input.setAttribute("aria-label", event.name + " 지출 금액");
+
+  const button = document.createElement("button");
+  button.type = "submit";
+  button.textContent = "입력";
+
+  form.appendChild(input);
+  form.appendChild(button);
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    handleAddSpending(event, input, tr);
+  });
+
+  const td = document.createElement("td");
+  td.appendChild(form);
+  return td;
+}
+
+// 지출 입력을 검사하고, 통과하면 그 행사의 지출에 더한다
+function handleAddSpending(event, input, tr) {
+  const result = addSpending(event.spent, input.value);
+  if (result.error !== null) {
+    // 잘못된 금액은 저장하지 않는다. 입력한 내용은 남겨 두어 바로 고칠 수 있게 한다
+    showRowError(tr, "지출: " + result.error);
+    input.focus();
+    return;
+  }
+  event.spent = result.spent;
+  // 다시 그리면 입력칸과 오류 문구는 저절로 비워진다
+  render();
+}
+
+// 행 바로 아래에 오류 문구 행을 보여 준다. 이미 있으면 문구만 바꾼다
+function showRowError(tr, message) {
+  let errorRow = tr.nextElementSibling;
+  if (!errorRow || errorRow.className !== "error-row") {
+    errorRow = document.createElement("tr");
+    errorRow.className = "error-row";
+    const td = document.createElement("td");
+    td.colSpan = 7;
+    td.className = "error-message";
+    td.setAttribute("role", "alert");
+    errorRow.appendChild(td);
+    tr.parentNode.insertBefore(errorRow, tr.nextElementSibling);
+  }
+  errorRow.firstChild.textContent = message;
 }
 
 // 요약 카드 4개를 채운다

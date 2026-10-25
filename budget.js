@@ -103,6 +103,22 @@ function getStatus(budget, spent) {
   return "초과";
 }
 
+// 지금까지의 지출에 새로 입력한 지출을 더한다 (누적).
+// 결과는 { spent: 더한 뒤 총 지출, error: 잘못된 이유 } 모양이다.
+// 새로 입력하는 지출은 1원 이상이어야 한다. 잘못되면 spent는 null.
+// 예: addSpending(700000, "100,000") → { spent: 800000, error: null }
+function addSpending(currentSpent, input) {
+  const current = parseAmount(currentSpent, 0);
+  if (current === null) {
+    return { spent: null, error: "지금까지의 지출 금액이 올바르지 않습니다." };
+  }
+  const result = checkAmount(input);
+  if (result.error !== null) {
+    return { spent: null, error: result.error };
+  }
+  return { spent: current + result.amount, error: null };
+}
+
 // 행사 목록의 총 예산과 총 지출을 더한다.
 // 목록 예: [{ name: "체육대회", budget: 1200000, spent: 1200000 }, ...]
 // 잘못된 금액이 하나라도 있으면 null (화면에서는 입력할 때 checkAmount로 미리 막는다)

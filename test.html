@@ -100,6 +100,24 @@
     check("쓴 돈 0원이면 정상", getStatus(800000, 0), "정상");
     check("쓴 돈 음수면 상태 판단 불가", getStatus(800000, -1), null);
 
+    // 지출 누적 입력
+    check("지출 더하기", addSpending(700000, "100,000").spent, 800000);
+    check("지출 더하기는 오류 없음", addSpending(700000, "100,000").error, null);
+    check("지출 0원인 새 행사에 더하기", addSpending(0, "50000원").spent, 50000);
+    check("두 번 나눠 더하기", addSpending(addSpending(0, "300,000").spent, "200,000").spent, 500000);
+    check("더해서 정확히 100%가 되면 주의",
+      getStatus(800000, addSpending(700000, "100,000").spent), "주의");
+    check("더해서 1원이라도 넘으면 초과",
+      getStatus(800000, addSpending(700000, "100,001").spent), "초과");
+    check("더해도 100% 미만이면 정상",
+      getStatus(800000, addSpending(700000, "99,999").spent), "정상");
+    check("빈 값은 더하지 않음", addSpending(700000, "").error, "금액을 입력해 주세요.");
+    check("글자는 더하지 않음", addSpending(700000, "abc").error, "숫자만 입력해 주세요.");
+    check("소수는 더하지 않음", addSpending(700000, "1000.5").error, "원 단위 정수로 입력해 주세요.");
+    check("0원은 더하지 않음", addSpending(700000, "0").error, "1원 이상 입력해 주세요.");
+    check("음수는 더하지 않음 (지출 빼기 불가)", addSpending(700000, "-1000").error, "1원 이상 입력해 주세요.");
+    check("잘못되면 지출은 null", addSpending(700000, "abc").spent, null);
+
     // 합계
     const sampleEvents = [
       { name: "신입생 환영회", budget: 800000, spent: 667200 },
