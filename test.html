@@ -125,6 +125,15 @@
       { name: "학과 축제 부스", budget: 500000, spent: 560000 }
     ];
     const totals = calcTotals(sampleEvents);
+    // 같은 이름 행사 확인
+    check("이미 있는 이름", hasEventName(sampleEvents, "체육대회"), true);
+    check("앞뒤 공백이 있어도 같은 이름", hasEventName(sampleEvents, "  체육대회  "), true);
+    check("목록 쪽 이름에 공백이 있어도 같은 이름",
+      hasEventName([{ name: " 개강총회 ", budget: 1000, spent: 0 }], "개강총회"), true);
+    check("가운데 공백이 다르면 다른 이름", hasEventName(sampleEvents, "체육 대회"), false);
+    check("없는 이름", hasEventName(sampleEvents, "동아리 박람회"), false);
+    check("빈 목록이면 항상 없음", hasEventName([], "체육대회"), false);
+
     check("총 예산 합계", totals.budget, 2500000);
     check("총 지출 합계", totals.spent, 2427200);
     check("쉼표 금액도 더함", calcTotals([{ budget: "1,000", spent: "500원" }]).budget, 1000);

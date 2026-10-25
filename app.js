@@ -25,11 +25,16 @@ function makeCell(text, className) {
   return td;
 }
 
+// 행사마다 지출 금액 칸을 기억해 둔다. 다시 그린 뒤 커서를 돌려놓을 때 쓴다
+// Map은 "행사 → 그 행사의 금액 칸"처럼 짝을 지어 저장하는 상자다
+let spendInputs = new Map();
+
 // 행사 목록으로 표를 채운다
 function renderEvents() {
   const tbody = document.getElementById("event-rows");
   // 다시 그릴 때 같은 행이 두 번 들어가지 않도록 먼저 비운다
   tbody.textContent = "";
+  spendInputs = new Map();
 
   for (const event of events) {
     const remaining = calcRemaining(event.budget, event.spent);
@@ -68,6 +73,7 @@ function makeSpendCell(event, tr) {
   input.placeholder = "금액";
   // 화면 읽기 프로그램이 어느 행사의 칸인지 알 수 있게 이름을 붙인다
   input.setAttribute("aria-label", event.name + " 지출 금액");
+  spendInputs.set(event, input);
 
   const button = document.createElement("button");
   button.type = "submit";
@@ -97,6 +103,9 @@ function handleAddSpending(event, input, tr) {
   event.spent = result.spent;
   // 다시 그리면 입력칸과 오류 문구는 저절로 비워진다
   render();
+  // 다시 그리면서 입력칸이 새로 만들어졌으므로, 같은 행사의 새 금액 칸으로 커서를 옮긴다
+  // 영수증 여러 장을 연달아 입력하기 편하게 하려는 것
+  spendInputs.get(event).focus();
 }
 
 // 행 바로 아래에 오류 문구 행을 보여 준다. 이미 있으면 문구만 바꾼다
@@ -144,6 +153,12 @@ function handleAddEvent(e) {
   const name = nameInput.value.trim();
   if (name === "") {
     errorMessage.textContent = "행사명을 입력해 주세요.";
+    nameInput.focus();
+    return;
+  }
+  if (hasEventName(events, name)) {
+    // 같은 이름이 두 개 있으면 지출을 어느 행에 넣을지 헷갈리므로 막는다
+    errorMessage.textContent = "이미 있는 행사명입니다.";
     nameInput.focus();
     return;
   }

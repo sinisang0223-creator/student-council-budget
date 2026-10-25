@@ -119,6 +119,18 @@ function addSpending(currentSpent, input) {
   return { spent: current + result.amount, error: null };
 }
 
+// 행사 목록에 같은 이름의 행사가 이미 있으면 true. 앞뒤 공백은 무시하고 비교한다.
+// 예: "  체육대회 "는 "체육대회"와 같은 이름으로 본다. "체육 대회"(가운데 공백)는 다른 이름이다.
+function hasEventName(events, name) {
+  const target = String(name).trim();
+  for (const event of events) {
+    if (String(event.name).trim() === target) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // 행사 목록의 총 예산과 총 지출을 더한다.
 // 목록 예: [{ name: "체육대회", budget: 1200000, spent: 1200000 }, ...]
 // 잘못된 금액이 하나라도 있으면 null (화면에서는 입력할 때 checkAmount로 미리 막는다)
