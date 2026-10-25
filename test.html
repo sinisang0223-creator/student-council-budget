@@ -71,7 +71,6 @@
     // 상태 판단
     check("100% 미만은 정상", getStatus(800000, 667200), "정상");
     check("99.96%(1,000,000원 중 999,600원)는 정상", getStatus(1000000, 999600), "정상");
-    check("99.96%는 화면에 100.0%로 보임", formatRate(calcUsageRate(1000000, 999600)), "100.0%");
     check("지출 = 예산이면 주의", getStatus(800000, 800000), "주의");
     check("쉼표 금액도 같으면 주의", getStatus("800,000원", 800000), "주의");
     check("1원이라도 넘으면 초과", getStatus(800000, 800001), "초과");
@@ -100,6 +99,11 @@
     check("83.36%는 83.4%로 표시", formatRate(83.36), "83.4%");
     check("834/1000은 83.4%로 표시", formatRate(calcUsageRate(1000, 834)), "83.4%");
     check("1/3은 33.3%로 표시", formatRate(calcUsageRate(3, 1)), "33.3%");
+    check("99.96%(1,000,000원 중 999,600원)는 99.9%로 표시",
+      formatRate(calcUsageRate(1000000, 999600)), "99.9%");
+    check("99.99%도 99.9%로 표시", formatRate(99.99), "99.9%");
+    check("99.94%는 원래대로 99.9%로 표시", formatRate(99.94), "99.9%");
+    check("99.84%는 원래대로 99.8%로 표시", formatRate(99.84), "99.8%");
     check("정확히 100%는 100.0%로 표시", formatRate(calcUsageRate(800000, 800000)), "100.0%");
     check("125%는 125.0%로 표시", formatRate(calcUsageRate(800000, 1000000)), "125.0%");
     check("계산 불가(null)면 빈 글자", formatRate(null), "");
