@@ -103,6 +103,7 @@ function formatWon(amount) {
 
 // 사용률을 화면용 글자로 바꾼다. 소수 첫째 자리까지 표시. 예: 83.36 → "83.4%"
 // 100% 미만은 반올림해도 최대 99.9%까지만 보인다. 예: 99.96 → "99.9%"
+// 100% 초과는 반올림해도 최소 100.1%로 보인다. 예: 100.04 → "100.1%"
 // (반올림으로 "100.0%"가 되면 상태가 "주의"인 것처럼 헷갈리기 때문)
 function formatRate(rate) {
   if (typeof rate !== "number" || !Number.isFinite(rate)) {
@@ -111,6 +112,9 @@ function formatRate(rate) {
   let text = rate.toFixed(1);
   if (rate < 100 && text === "100.0") {
     text = "99.9";
+  }
+  if (rate > 100 && text === "100.0") {
+    text = "100.1";
   }
   return text + "%";
 }

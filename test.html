@@ -105,6 +105,10 @@
     check("99.94%는 원래대로 99.9%로 표시", formatRate(99.94), "99.9%");
     check("99.84%는 원래대로 99.8%로 표시", formatRate(99.84), "99.8%");
     check("정확히 100%는 100.0%로 표시", formatRate(calcUsageRate(800000, 800000)), "100.0%");
+    check("100.04%(1,000,000원 중 1,000,400원)는 100.1%로 표시",
+      formatRate(calcUsageRate(1000000, 1000400)), "100.1%");
+    check("100.05%는 100.1%로 표시", formatRate(100.05), "100.1%");
+    check("112%는 112.0%로 표시", formatRate(calcUsageRate(500000, 560000)), "112.0%");
     check("125%는 125.0%로 표시", formatRate(calcUsageRate(800000, 1000000)), "125.0%");
     check("계산 불가(null)면 빈 글자", formatRate(null), "");
 
