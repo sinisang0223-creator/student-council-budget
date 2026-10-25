@@ -112,9 +112,61 @@ tbody tr:last-child td {
   color: #c92a2a;
 }
 
+/* 행사 추가 입력칸: 넓은 화면에서는 한 줄, 좁으면 아래로 넘어간다 */
+.add-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.field input {
+  padding: 8px 10px;
+  font-size: 1rem;
+  border: 1px solid #c4c9d0;
+  border-radius: 6px;
+}
+
+button {
+  padding: 9px 16px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  background: #1c64d1;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1550a8;
+}
+
+/* 잘못된 입력의 이유. 비어 있을 때도 높이를 잡아서 화면이 들썩이지 않게 한다 */
+.error-message {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  color: #c92a2a;
+  font-size: 0.9rem;
+}
+
 /* 휴대폰처럼 좁은 화면에서는 카드를 세로로 쌓는다 */
 @media (max-width: 600px) {
   .summary {
     grid-template-columns: 1fr;
+  }
+
+  /* 입력칸과 버튼도 화면 너비에 꽉 차게 */
+  .add-form {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

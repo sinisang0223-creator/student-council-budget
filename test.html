@@ -44,13 +44,33 @@
     check("소수 글자 \"1000.5\"는 잘못된 값", parseAmount("1000.5"), null);
     check("글자 \"abc\"는 잘못된 값", parseAmount("abc"), null);
     check("빈 값 \"\"은 잘못된 값", parseAmount(""), null);
+    check("최소 0원으로 읽으면 0원도 허용", parseAmount(0, 0), 0);
+    check("최소 0원으로 읽어도 음수는 잘못된 값", parseAmount(-1, 0), null);
+
+    // 입력 검사 (잘못된 이유)
+    check("정상 금액은 오류 없음", checkAmount("800000").error, null);
+    check("정상 금액 읽기", checkAmount("800000").amount, 800000);
+    check("쉼표 금액 읽기", checkAmount("800,000").amount, 800000);
+    check("쉼표와 원 읽기", checkAmount("800,000원").amount, 800000);
+    check("앞뒤 공백은 무시", checkAmount("  1000  ").amount, 1000);
+    check("1원은 통과", checkAmount("1").amount, 1);
+    check("빈 값", checkAmount("").error, "금액을 입력해 주세요.");
+    check("공백만 입력", checkAmount("   ").error, "금액을 입력해 주세요.");
+    check("글자", checkAmount("abc").error, "숫자만 입력해 주세요.");
+    check("숫자와 글자 섞임", checkAmount("10만원").error, "숫자만 입력해 주세요.");
+    check("1e3 같은 지수 표기는 글자로 봄", checkAmount("1e3").error, "숫자만 입력해 주세요.");
+    check("0x10 같은 16진수는 글자로 봄", checkAmount("0x10").error, "숫자만 입력해 주세요.");
+    check("소수", checkAmount("1000.5").error, "원 단위 정수로 입력해 주세요.");
+    check("0원", checkAmount("0").error, "1원 이상 입력해 주세요.");
+    check("음수", checkAmount("-1,000").error, "1원 이상 입력해 주세요.");
+    check("잘못되면 금액은 null", checkAmount("abc").amount, null);
 
     // 사용률
     check("사용률 50%", calcUsageRate(800000, 400000), 50);
     check("정확히 100%", calcUsageRate(800000, 800000), 100);
     check("100% 초과 (125%)", calcUsageRate(800000, 1000000), 125);
     check("사용률은 반올림하지 않음 (1/3은 33.3보다 큼)", calcUsageRate(3, 1) > 33.33, true);
-    check("쓴 돈 0원이면 계산 불가", calcUsageRate(800000, 0), null);
+    check("쓴 돈 0원이면 0%", calcUsageRate(800000, 0), 0);
     check("예산 0원이면 계산 불가", calcUsageRate(0, 1000), null);
     check("쉼표 금액으로 사용률", calcUsageRate("800,000", "200,000"), 25);
     check("글자 입력이면 사용률 계산 불가", calcUsageRate("abc", 1000), null);
@@ -60,6 +80,7 @@
     check("정확히 100%면 남은 금액 0원", calcRemaining(800000, 800000), 0);
     check("초과하면 남은 금액이 음수", calcRemaining(800000, 1000000), -200000);
     check("음수 입력이면 남은 금액 계산 불가", calcRemaining(800000, -1), null);
+    check("쓴 돈 0원이면 예산 전체가 남음", calcRemaining(800000, 0), 800000);
 
     // 초과 판단
     check("100% 미만은 초과 아님", isOverBudget(800000, 799999), false);
@@ -67,6 +88,7 @@
     check("100% 초과", isOverBudget(800000, 800001), true);
     check("예산 0원이면 초과 판단 불가", isOverBudget(0, 1), null);
     check("소수 입력이면 초과 판단 불가", isOverBudget(800000, 0.5), null);
+    check("쓴 돈 0원은 초과 아님", isOverBudget(800000, 0), false);
 
     // 상태 판단
     check("100% 미만은 정상", getStatus(800000, 667200), "정상");
@@ -75,6 +97,8 @@
     check("쉼표 금액도 같으면 주의", getStatus("800,000원", 800000), "주의");
     check("1원이라도 넘으면 초과", getStatus(800000, 800001), "초과");
     check("잘못된 입력이면 상태 판단 불가", getStatus(800000, "abc"), null);
+    check("쓴 돈 0원이면 정상", getStatus(800000, 0), "정상");
+    check("쓴 돈 음수면 상태 판단 불가", getStatus(800000, -1), null);
 
     // 합계
     const sampleEvents = [
@@ -89,6 +113,8 @@
     check("잘못된 금액이 있으면 합계 불가",
       calcTotals([{ budget: 1000, spent: 500 }, { budget: 0, spent: 500 }]), null);
     check("빈 목록이면 총 예산 0", calcTotals([]).budget, 0);
+    check("지출 0원인 새 행사도 합계에 들어감",
+      calcTotals([{ budget: 1000, spent: 0 }, { budget: 2000, spent: 500 }]).budget, 3000);
 
     // 금액 표시
     check("800,000원 표시", formatWon(800000), "800,000원");
@@ -110,6 +136,7 @@
     check("100.05%는 100.1%로 표시", formatRate(100.05), "100.1%");
     check("112%는 112.0%로 표시", formatRate(calcUsageRate(500000, 560000)), "112.0%");
     check("125%는 125.0%로 표시", formatRate(calcUsageRate(800000, 1000000)), "125.0%");
+    check("0%는 0.0%로 표시", formatRate(calcUsageRate(800000, 0)), "0.0%");
     check("계산 불가(null)면 빈 글자", formatRate(null), "");
 
     document.getElementById("summary").textContent =

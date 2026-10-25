@@ -30,6 +30,25 @@
       </div>
     </section>
 
+    <!-- 행사 추가: 잘못 입력하면 목록에 넣지 않고 아래에 이유를 보여 준다 -->
+    <section>
+      <h2>행사 추가</h2>
+      <!-- novalidate: 브라우저 기본 검사 대신 app.js가 한국어로 이유를 보여 준다 -->
+      <form id="add-event-form" class="add-form" novalidate>
+        <label class="field">
+          <span>행사명</span>
+          <input id="event-name" type="text" placeholder="예: 졸업 준비 모임">
+        </label>
+        <label class="field">
+          <span>예산</span>
+          <!-- type="number"는 쉼표를 넣으면 값이 사라지므로 일반 글자 칸을 쓴다 -->
+          <input id="event-budget" type="text" inputmode="numeric" placeholder="예: 800,000">
+        </label>
+        <button type="submit">행사 추가</button>
+      </form>
+      <p id="add-event-error" class="error-message" role="alert"></p>
+    </section>
+
     <!-- 행사별 표: app.js가 행사마다 한 줄씩 채운다 -->
     <section>
       <h2>행사별 예산</h2>

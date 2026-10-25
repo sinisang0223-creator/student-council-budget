@@ -28,6 +28,8 @@ function makeCell(text, className) {
 // 행사 목록으로 표를 채운다
 function renderEvents() {
   const tbody = document.getElementById("event-rows");
+  // 다시 그릴 때 같은 행이 두 번 들어가지 않도록 먼저 비운다
+  tbody.textContent = "";
 
   for (const event of events) {
     const remaining = calcRemaining(event.budget, event.spent);
@@ -62,5 +64,47 @@ function renderSummary() {
     formatRate(calcUsageRate(totals.budget, totals.spent));
 }
 
-renderSummary();
-renderEvents();
+// 요약 카드와 표를 모두 다시 그린다
+function render() {
+  renderSummary();
+  renderEvents();
+}
+
+// "행사 추가" 버튼을 누르거나 입력칸에서 Enter를 누르면 실행된다
+function handleAddEvent(e) {
+  // 폼의 기본 동작(페이지 새로고침)을 막는다. 막지 않으면 입력한 내용이 사라진다
+  e.preventDefault();
+
+  const nameInput = document.getElementById("event-name");
+  const budgetInput = document.getElementById("event-budget");
+  const errorMessage = document.getElementById("add-event-error");
+
+  const name = nameInput.value.trim();
+  if (name === "") {
+    errorMessage.textContent = "행사명을 입력해 주세요.";
+    nameInput.focus();
+    return;
+  }
+
+  const result = checkAmount(budgetInput.value);
+  if (result.error !== null) {
+    // 잘못된 금액은 저장하지 않는다. 입력한 내용은 남겨 두어 바로 고칠 수 있게 한다
+    errorMessage.textContent = "예산: " + result.error;
+    budgetInput.focus();
+    return;
+  }
+
+  // 새 행사는 아직 지출이 없으므로 0원으로 시작한다
+  events.push({ name: name, budget: result.amount, spent: 0 });
+  render();
+
+  // 다음 행사를 바로 입력할 수 있게 칸을 비운다
+  errorMessage.textContent = "";
+  nameInput.value = "";
+  budgetInput.value = "";
+  nameInput.focus();
+}
+
+document.getElementById("add-event-form").addEventListener("submit", handleAddEvent);
+
+render();
