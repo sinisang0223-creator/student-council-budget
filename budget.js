@@ -57,6 +57,42 @@ function isOverBudget(budget, spent) {
   return s > b;
 }
 
+// 상태 판단. 반올림한 사용률이 아니라 지출과 예산을 직접 비교한다.
+// 지출 < 예산이면 "정상", 지출 = 예산이면 "주의", 지출 > 예산이면 "초과"
+// 예: 예산 1,000,000원에 지출 999,600원(99.96%)은 화면에 100.0%로 보여도 "정상"
+function getStatus(budget, spent) {
+  const b = parseAmount(budget);
+  const s = parseAmount(spent);
+  if (b === null || s === null) {
+    return null;
+  }
+  if (s < b) {
+    return "정상";
+  }
+  if (s === b) {
+    return "주의";
+  }
+  return "초과";
+}
+
+// 행사 목록의 총 예산과 총 지출을 더한다.
+// 목록 예: [{ name: "체육대회", budget: 1200000, spent: 1200000 }, ...]
+// 잘못된 금액이 하나라도 있으면 null (잘못된 행 처리는 4단계에서 정한다)
+function calcTotals(events) {
+  let totalBudget = 0;
+  let totalSpent = 0;
+  for (const event of events) {
+    const b = parseAmount(event.budget);
+    const s = parseAmount(event.spent);
+    if (b === null || s === null) {
+      return null;
+    }
+    totalBudget += b;
+    totalSpent += s;
+  }
+  return { budget: totalBudget, spent: totalSpent };
+}
+
 // 금액을 화면용 글자로 바꾼다. 예: 800000 → "800,000원", -50000 → "-50,000원"
 function formatWon(amount) {
   if (typeof amount !== "number" || !Number.isInteger(amount)) {

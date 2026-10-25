@@ -68,6 +68,29 @@
     check("예산 0원이면 초과 판단 불가", isOverBudget(0, 1), null);
     check("소수 입력이면 초과 판단 불가", isOverBudget(800000, 0.5), null);
 
+    // 상태 판단
+    check("100% 미만은 정상", getStatus(800000, 667200), "정상");
+    check("99.96%(1,000,000원 중 999,600원)는 정상", getStatus(1000000, 999600), "정상");
+    check("99.96%는 화면에 100.0%로 보임", formatRate(calcUsageRate(1000000, 999600)), "100.0%");
+    check("지출 = 예산이면 주의", getStatus(800000, 800000), "주의");
+    check("쉼표 금액도 같으면 주의", getStatus("800,000원", 800000), "주의");
+    check("1원이라도 넘으면 초과", getStatus(800000, 800001), "초과");
+    check("잘못된 입력이면 상태 판단 불가", getStatus(800000, "abc"), null);
+
+    // 합계
+    const sampleEvents = [
+      { name: "신입생 환영회", budget: 800000, spent: 667200 },
+      { name: "체육대회", budget: 1200000, spent: 1200000 },
+      { name: "학과 축제 부스", budget: 500000, spent: 560000 }
+    ];
+    const totals = calcTotals(sampleEvents);
+    check("총 예산 합계", totals.budget, 2500000);
+    check("총 지출 합계", totals.spent, 2427200);
+    check("쉼표 금액도 더함", calcTotals([{ budget: "1,000", spent: "500원" }]).budget, 1000);
+    check("잘못된 금액이 있으면 합계 불가",
+      calcTotals([{ budget: 1000, spent: 500 }, { budget: 0, spent: 500 }]), null);
+    check("빈 목록이면 총 예산 0", calcTotals([]).budget, 0);
+
     // 금액 표시
     check("800,000원 표시", formatWon(800000), "800,000원");
     check("0원 표시", formatWon(0), "0원");

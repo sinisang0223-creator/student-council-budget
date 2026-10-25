@@ -10,27 +10,27 @@
   <main class="container">
     <h1>학생회 행사 예산 현황</h1>
 
-    <!-- 전체 요약: 지금은 고정된 예시 값. 3단계에서 자바스크립트로 채운다 -->
+    <!-- 전체 요약: app.js가 값을 채운다 -->
     <section class="summary">
       <div class="card">
         <p class="card-label">총 예산</p>
-        <p class="card-value">2,500,000원</p>
+        <p class="card-value" id="total-budget"></p>
       </div>
       <div class="card">
         <p class="card-label">총 지출</p>
-        <p class="card-value">2,427,200원</p>
+        <p class="card-value" id="total-spent"></p>
       </div>
       <div class="card">
         <p class="card-label">남은 금액</p>
-        <p class="card-value">72,800원</p>
+        <p class="card-value" id="total-remaining"></p>
       </div>
       <div class="card">
         <p class="card-label">전체 사용률</p>
-        <p class="card-value">97.1%</p>
+        <p class="card-value" id="total-rate"></p>
       </div>
     </section>
 
-    <!-- 행사별 표: 예시 행 3개로 세 가지 상태를 하나씩 보여 준다 -->
+    <!-- 행사별 표: app.js가 행사마다 한 줄씩 채운다 -->
     <section>
       <h2>행사별 예산</h2>
       <div class="table-wrap">
@@ -45,35 +45,14 @@
               <th>상태</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>신입생 환영회</td>
-              <td class="num">800,000원</td>
-              <td class="num">667,200원</td>
-              <td class="num">132,800원</td>
-              <td class="num">83.4%</td>
-              <td><span class="status status-ok">정상</span></td>
-            </tr>
-            <tr>
-              <td>체육대회</td>
-              <td class="num">1,200,000원</td>
-              <td class="num">1,200,000원</td>
-              <td class="num">0원</td>
-              <td class="num">100.0%</td>
-              <td><span class="status status-warn">주의</span></td>
-            </tr>
-            <tr>
-              <td>학과 축제 부스</td>
-              <td class="num">500,000원</td>
-              <td class="num">560,000원</td>
-              <td class="num negative">-60,000원</td>
-              <td class="num">112.0%</td>
-              <td><span class="status status-over">초과</span></td>
-            </tr>
-          </tbody>
+          <tbody id="event-rows"></tbody>
         </table>
       </div>
     </section>
   </main>
+
+  <!-- 순서 중요: app.js가 budget.js 함수를 쓰므로 budget.js를 먼저 불러온다 -->
+  <script src="budget.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
