@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>budget.js 테스트</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    .pass { color: #1a7f37; }
+    .fail { color: #cf222e; font-weight: bold; }
+    #summary { font-size: 1.2em; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <h1>budget.js 테스트</h1>
+  <p id="summary"></p>
+  <ul id="results"></ul>
+
+  <script src="budget.js"></script>
+  <script>
+    let passCount = 0;
+    let failCount = 0;
+
+    // 실제 결과(actual)가 기대한 값(expected)과 같은지 확인하고 화면에 적는다
+    function check(name, actual, expected) {
+      const ok = actual === expected;
+      const li = document.createElement("li");
+      li.className = ok ? "pass" : "fail";
+      li.textContent = (ok ? "✅ " : "❌ ") + name
+        + (ok ? "" : " — 기대: " + expected + ", 실제: " + actual);
+      document.getElementById("results").appendChild(li);
+      if (ok) { passCount++; } else { failCount++; }
+    }
+
+    // 금액 읽기
+    check("숫자 800000", parseAmount(800000), 800000);
+    check("1원", parseAmount(1), 1);
+    check("0원은 잘못된 값", parseAmount(0), null);
+    check("글자 \"0\"은 잘못된 값", parseAmount("0"), null);
+    check("쉼표 금액 \"800,000\"", parseAmount("800,000"), 800000);
+    check("쉼표와 원 \"800,000원\"", parseAmount("800,000원"), 800000);
+    check("음수 -1000은 잘못된 값", parseAmount(-1000), null);
+    check("음수 글자 \"-1,000\"은 잘못된 값", parseAmount("-1,000"), null);
+    check("소수 1000.5는 잘못된 값", parseAmount(1000.5), null);
+    check("소수 글자 \"1000.5\"는 잘못된 값", parseAmount("1000.5"), null);
+    check("글자 \"abc\"는 잘못된 값", parseAmount("abc"), null);
+    check("빈 값 \"\"은 잘못된 값", parseAmount(""), null);
+
+    // 사용률
+    check("사용률 50%", calcUsageRate(800000, 400000), 50);
+    check("정확히 100%", calcUsageRate(800000, 800000), 100);
+    check("100% 초과 (125%)", calcUsageRate(800000, 1000000), 125);
+    check("사용률은 반올림하지 않음 (1/3은 33.3보다 큼)", calcUsageRate(3, 1) > 33.33, true);
+    check("쓴 돈 0원이면 계산 불가", calcUsageRate(800000, 0), null);
+    check("예산 0원이면 계산 불가", calcUsageRate(0, 1000), null);
+    check("쉼표 금액으로 사용률", calcUsageRate("800,000", "200,000"), 25);
+    check("글자 입력이면 사용률 계산 불가", calcUsageRate("abc", 1000), null);
+
+    // 남은 금액
+    check("남은 금액", calcRemaining(800000, 300000), 500000);
+    check("정확히 100%면 남은 금액 0원", calcRemaining(800000, 800000), 0);
+    check("초과하면 남은 금액이 음수", calcRemaining(800000, 1000000), -200000);
+    check("음수 입력이면 남은 금액 계산 불가", calcRemaining(800000, -1), null);
+
+    // 초과 판단
+    check("100% 미만은 초과 아님", isOverBudget(800000, 799999), false);
+    check("정확히 100%는 초과 아님", isOverBudget(800000, 800000), false);
+    check("100% 초과", isOverBudget(800000, 800001), true);
+    check("예산 0원이면 초과 판단 불가", isOverBudget(0, 1), null);
+    check("소수 입력이면 초과 판단 불가", isOverBudget(800000, 0.5), null);
+
+    // 금액 표시
+    check("800,000원 표시", formatWon(800000), "800,000원");
+    check("0원 표시", formatWon(0), "0원");
+    check("음수 표시", formatWon(-200000), "-200,000원");
+
+    // 사용률 표시
+    check("83.36%는 83.4%로 표시", formatRate(83.36), "83.4%");
+    check("834/1000은 83.4%로 표시", formatRate(calcUsageRate(1000, 834)), "83.4%");
+    check("1/3은 33.3%로 표시", formatRate(calcUsageRate(3, 1)), "33.3%");
+    check("정확히 100%는 100.0%로 표시", formatRate(calcUsageRate(800000, 800000)), "100.0%");
+    check("125%는 125.0%로 표시", formatRate(calcUsageRate(800000, 1000000)), "125.0%");
+    check("계산 불가(null)면 빈 글자", formatRate(null), "");
+
+    document.getElementById("summary").textContent =
+      "통과 " + passCount + "개 / 실패 " + failCount + "개";
+    document.getElementById("summary").className = failCount === 0 ? "pass" : "fail";
+  </script>
+</body>
+</html>
