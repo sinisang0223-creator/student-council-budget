@@ -56,17 +56,26 @@ const statusIcon = {
   "초과": "▲"
 };
 
+// 사용률 막대의 색과 길이를 정한다. 표의 막대와 요약 카드의 큰 막대가 같이 쓴다
+// baseClass는 막대 모양 스타일 이름이고, 여기에 상태 색 스타일 이름을 붙인다
+function fillMeter(meter, budget, spent, baseClass) {
+  const status = getStatus(budget, spent);
+  const width = calcBarWidth(budget, spent);
+  // 행사가 하나도 없으면 상태와 길이를 정할 수 없으므로 빈 막대로 둔다
+  meter.className = status === null ? baseClass : baseClass + " " + statusClass[status];
+  meter.firstChild.style.width = (width === null ? 0 : width) + "%";
+}
+
 // 사용률 칸: [막대] 83.4% 모양으로 만든다
 // 막대 색은 상태를 따르고, 숫자 글자는 그대로 검은 글자로 둔다
-function makeRateCell(budget, spent, status) {
+function makeRateCell(budget, spent) {
   const meter = document.createElement("span");
-  meter.className = "meter " + statusClass[status];
   // 막대는 옆의 숫자와 같은 내용이라 화면 읽기 프로그램은 건너뛰게 한다
   meter.setAttribute("aria-hidden", "true");
   const fill = document.createElement("span");
   fill.className = "meter-fill";
-  fill.style.width = calcBarWidth(budget, spent) + "%";
   meter.appendChild(fill);
+  fillMeter(meter, budget, spent, "meter");
 
   const rateText = document.createElement("span");
   rateText.className = "rate-text";
@@ -113,7 +122,7 @@ function renderEvents() {
     tr.appendChild(makeCell(formatWon(event.budget), "num"));
     tr.appendChild(makeCell(formatWon(event.spent), "num"));
     tr.appendChild(makeCell(formatWon(remaining), isOverBudget(event.budget, event.spent) ? "num negative" : "num"));
-    tr.appendChild(makeRateCell(event.budget, event.spent, status));
+    tr.appendChild(makeRateCell(event.budget, event.spent));
 
     const badge = document.createElement("span");
     badge.className = "status " + statusClass[status];
@@ -193,15 +202,39 @@ function showRowError(tr, message) {
   errorRow.firstChild.textContent = message;
 }
 
-// 요약 카드 4개를 채운다
+// 요약 카드 4개(전체 사용률 큰 카드 + 작은 카드 3개)를 채운다
 function renderSummary() {
   const totals = calcTotals(events);
   document.getElementById("total-budget").textContent = formatWon(totals.budget);
   document.getElementById("total-spent").textContent = formatWon(totals.spent);
-  document.getElementById("total-remaining").textContent =
-    formatWon(calcRemaining(totals.budget, totals.spent));
+
+  // 전체가 예산을 넘으면 표처럼 남은 금액을 빨간 글자로 보인다
+  const remaining = document.getElementById("total-remaining");
+  remaining.textContent = formatWon(calcRemaining(totals.budget, totals.spent));
+  remaining.className = isOverBudget(totals.budget, totals.spent) ? "card-value negative" : "card-value";
+
   document.getElementById("total-rate").textContent =
     formatRate(calcUsageRate(totals.budget, totals.spent));
+  fillMeter(document.getElementById("total-meter"), totals.budget, totals.spent,
+    "meter meter-wide");
+
+  renderStatusCounts();
+}
+
+// "✓ 정상 1  ! 주의 1  ▲ 초과 1"처럼 상태별 행사 개수를 보여 준다
+function renderStatusCounts() {
+  const box = document.getElementById("status-counts");
+  box.textContent = "";
+  const counts = countStatuses(events);
+  if (counts === null) {
+    return;
+  }
+  for (const status of ["정상", "주의", "초과"]) {
+    const badge = document.createElement("span");
+    badge.className = "status " + statusClass[status];
+    badge.textContent = statusIcon[status] + " " + status + " " + counts[status];
+    box.appendChild(badge);
+  }
 }
 
 // 요약 카드와 표를 모두 다시 그린다

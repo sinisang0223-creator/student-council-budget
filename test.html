@@ -184,6 +184,17 @@
       JSON.stringify(parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0,"memo":"x"}]')),
       '[{"name":"체육대회","budget":1000,"spent":0}]');
 
+    // 상태별 개수
+    const sampleCounts = countStatuses(sampleEvents);
+    check("예시 행사 정상 개수", sampleCounts["정상"], 1);
+    check("예시 행사 주의 개수", sampleCounts["주의"], 1);
+    check("예시 행사 초과 개수", sampleCounts["초과"], 1);
+    check("같은 상태가 여럿이면 더함",
+      countStatuses([{ budget: 1000, spent: 0 }, { budget: 1000, spent: 999 }])["정상"], 2);
+    check("없는 상태는 0", countStatuses([{ budget: 1000, spent: 0 }])["초과"], 0);
+    check("빈 목록이면 모두 0", countStatuses([])["정상"], 0);
+    check("잘못된 금액이 있으면 null", countStatuses([{ budget: 0, spent: 0 }]), null);
+
     // CSV 칸 글자
     check("보통 글자는 그대로", escapeCsvCell("체육대회"), "체육대회");
     check("쉼표가 있으면 따옴표로 감쌈", escapeCsvCell("MT, 1박 2일"), '"MT, 1박 2일"');

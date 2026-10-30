@@ -14,6 +14,13 @@
 
     <!-- 전체 요약: app.js가 값을 채운다 -->
     <section class="summary">
+      <!-- 가장 먼저 볼 숫자: 전체 사용률을 크게, 아래에 막대와 상태별 개수 -->
+      <div class="card card-hero">
+        <p class="card-label">전체 사용률</p>
+        <p class="hero-value" id="total-rate"></p>
+        <span class="meter meter-wide" id="total-meter" aria-hidden="true"><span class="meter-fill"></span></span>
+        <p class="status-counts" id="status-counts"></p>
+      </div>
       <div class="card">
         <p class="card-label">총 예산</p>
         <p class="card-value" id="total-budget"></p>
@@ -25,10 +32,6 @@
       <div class="card">
         <p class="card-label">남은 금액</p>
         <p class="card-value" id="total-remaining"></p>
-      </div>
-      <div class="card">
-        <p class="card-label">전체 사용률</p>
-        <p class="card-value" id="total-rate"></p>
       </div>
     </section>
 

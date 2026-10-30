@@ -61,11 +61,57 @@ h2 {
   margin: 36px 0 12px;
 }
 
-/* 전체 요약 카드: 넓은 화면에서는 4개를 한 줄에 */
+/* 전체 요약: 왼쪽에 전체 사용률 큰 카드, 오른쪽에 작은 카드 3개를 세로로 */
 .summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1.3fr 1fr;
   gap: 12px;
+}
+
+/* 큰 카드는 오른쪽 작은 카드 3개 높이만큼 세로로 늘어난다 */
+.card-hero {
+  grid-row: span 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 28px;
+}
+
+.card-hero .card-label {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* 대시보드에서 가장 먼저 보이는 숫자 */
+.hero-value {
+  margin: 0;
+  font-size: 3.2rem;
+  font-weight: bold;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 상태별 개수: ✓ 정상 1  ! 주의 1  ▲ 초과 1 */
+.status-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+/* 오른쪽 작은 카드는 이름과 숫자를 한 줄에 놓아 높이를 줄인다 */
+.summary .card:not(.card-hero) {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.summary .card:not(.card-hero) .card-label {
+  margin: 0;
 }
 
 .card {
@@ -187,6 +233,18 @@ tbody tr:not(.error-row):hover td {
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
+}
+
+/* 요약 카드의 큰 막대 */
+.meter-wide {
+  width: 100%;
+  height: 12px;
+}
+
+/* 행사가 없어 상태 색이 없을 때만 회색 바탕을 보인다
+   :where()로 감싸면 우선순위가 가장 낮아져서, 상태 색(.status-ok 등)이 있으면 그쪽이 이긴다 */
+:where(.meter-wide) {
+  background: var(--color-border);
 }
 
 /* 막대를 채우는 부분. 길이는 app.js가 정한다 */
@@ -343,6 +401,16 @@ tr:has(+ .error-row) td {
 @media (max-width: 600px) {
   .summary {
     grid-template-columns: 1fr;
+  }
+
+  /* 큰 카드는 맨 위에 한 장, 작은 카드 3개는 그 아래에 쌓인다 */
+  .card-hero {
+    grid-row: auto;
+    padding: 20px;
+  }
+
+  .hero-value {
+    font-size: 2.6rem;
   }
 
   /* 입력칸과 버튼도 화면 너비에 꽉 차게 */

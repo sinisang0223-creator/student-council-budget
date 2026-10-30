@@ -202,6 +202,21 @@ function calcTotals(events) {
   return { budget: totalBudget, spent: totalSpent };
 }
 
+// 상태별 행사 개수를 센다. 상태 판단은 getStatus와 같다.
+// 잘못된 금액이 하나라도 있으면 null
+// 예: 예시 행사 3개 → { "정상": 1, "주의": 1, "초과": 1 }
+function countStatuses(events) {
+  const counts = { "정상": 0, "주의": 0, "초과": 0 };
+  for (const event of events) {
+    const status = getStatus(event.budget, event.spent);
+    if (status === null) {
+      return null;
+    }
+    counts[status] += 1;
+  }
+  return counts;
+}
+
 // CSV 칸 하나에 넣을 글자를 안전하게 바꾼다. 행사명처럼 사용자가 쓴 글자에만 쓴다.
 // - =, +, -, @로 시작하면 엑셀이 계산식으로 읽으므로 앞에 '를 붙여 글자로만 보이게 한다
 // - 쉼표, 따옴표, 줄바꿈이 있으면 칸이 밀리지 않게 따옴표로 감싸고, 안의 따옴표는 두 번 쓴다
