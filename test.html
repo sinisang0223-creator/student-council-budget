@@ -173,6 +173,38 @@
       JSON.stringify(parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0,"memo":"x"}]')),
       '[{"name":"체육대회","budget":1000,"spent":0}]');
 
+    // CSV 칸 글자
+    check("보통 글자는 그대로", escapeCsvCell("체육대회"), "체육대회");
+    check("쉼표가 있으면 따옴표로 감쌈", escapeCsvCell("MT, 1박 2일"), '"MT, 1박 2일"');
+    check("따옴표는 두 번 쓰고 감쌈", escapeCsvCell('"밤샘" 축제'), '"""밤샘"" 축제"');
+    check("줄바꿈이 있으면 감쌈", escapeCsvCell("1부\n2부"), '"1부\n2부"');
+    check("=로 시작하면 '를 붙임", escapeCsvCell("=1+1"), "'=1+1");
+    check("+로 시작하면 '를 붙임", escapeCsvCell("+행사"), "'+행사");
+    check("-로 시작하면 '를 붙임", escapeCsvCell("-행사"), "'-행사");
+    check("@로 시작하면 '를 붙임", escapeCsvCell("@행사"), "'@행사");
+    check("계산식 모양에 쉼표도 있으면 둘 다", escapeCsvCell("=A1,B1"), "\"'=A1,B1\"");
+    check("가운데 =는 그대로", escapeCsvCell("1=1 행사"), "1=1 행사");
+
+    // CSV 만들기
+    const csvLines = makeCsv(sampleEvents).split("\r\n");
+    check("CSV 줄 수 (머리 1 + 행사 3 + 합계 1)", csvLines.length, 5);
+    check("CSV 머리 줄", csvLines[0], "행사명,예산,지출,남은 금액,사용률,상태");
+    check("정상 행사 줄", csvLines[1], "신입생 환영회,800000,667200,132800,83.4%,정상");
+    check("주의 행사 줄", csvLines[2], "체육대회,1200000,1200000,0,100.0%,주의");
+    check("초과 행사 줄 (남은 금액 음수)", csvLines[3], "학과 축제 부스,500000,560000,-60000,112.0%,초과");
+    check("합계 줄 (상태 칸은 비움)", csvLines[4], "합계,2500000,2427200,72800,97.1%,");
+    check("지출 0원 행사",
+      makeCsv([{ name: "개강총회", budget: 300000, spent: 0 }]).split("\r\n")[1],
+      "개강총회,300000,0,300000,0.0%,정상");
+    check("쉼표 든 행사명도 한 칸",
+      makeCsv([{ name: "MT, 1박 2일", budget: 1000, spent: 0 }]).split("\r\n")[1],
+      '"MT, 1박 2일",1000,0,1000,0.0%,정상');
+    check("99.96%는 화면처럼 99.9%",
+      makeCsv([{ name: "체육대회", budget: 1000000, spent: 999600 }]).split("\r\n")[1],
+      "체육대회,1000000,999600,400,99.9%,정상");
+    check("잘못된 금액이 있으면 null", makeCsv([{ name: "체육대회", budget: 0, spent: 0 }]), null);
+    check("빈 목록이면 머리 줄과 합계 줄만", makeCsv([]), "행사명,예산,지출,남은 금액,사용률,상태\r\n합계,0,0,,,");
+
     // 금액 표시
     check("800,000원 표시", formatWon(800000), "800,000원");
     check("0원 표시", formatWon(0), "0원");

@@ -191,6 +191,59 @@ function calcTotals(events) {
   return { budget: totalBudget, spent: totalSpent };
 }
 
+// CSV 칸 하나에 넣을 글자를 안전하게 바꾼다. 행사명처럼 사용자가 쓴 글자에만 쓴다.
+// - =, +, -, @로 시작하면 엑셀이 계산식으로 읽으므로 앞에 '를 붙여 글자로만 보이게 한다
+// - 쉼표, 따옴표, 줄바꿈이 있으면 칸이 밀리지 않게 따옴표로 감싸고, 안의 따옴표는 두 번 쓴다
+// 예: "MT, 1박 2일" → "\"MT, 1박 2일\"", "=1+1" → "'=1+1"
+function escapeCsvCell(text) {
+  let cell = String(text);
+  if (/^[=+\-@\t\r]/.test(cell)) {
+    cell = "'" + cell;
+  }
+  if (/[",\r\n]/.test(cell)) {
+    cell = '"' + cell.replace(/"/g, '""') + '"';
+  }
+  return cell;
+}
+
+// 행사 목록을 CSV 글자로 바꾼다. 엑셀이나 구글 시트에서 열 수 있다.
+// 칸 순서는 화면 표와 같다: 행사명, 예산, 지출, 남은 금액, 사용률, 상태
+// 금액은 엑셀에서 계산할 수 있게 숫자만 적는다(쉼표, "원" 없음). 맨 아래에 합계 줄을 넣는다.
+// 잘못된 금액이 하나라도 있으면 null
+// 예: [{ name: "체육대회", budget: 1200000, spent: 1200000 }]
+//   → "행사명,예산,지출,남은 금액,사용률,상태\r\n체육대회,1200000,1200000,0,100.0%,주의\r\n합계,1200000,1200000,0,100.0%,"
+function makeCsv(events) {
+  const totals = calcTotals(events);
+  if (totals === null) {
+    return null;
+  }
+
+  const lines = ["행사명,예산,지출,남은 금액,사용률,상태"];
+  for (const event of events) {
+    const budget = parseAmount(event.budget);
+    const spent = parseAmount(event.spent, 0);
+    lines.push([
+      escapeCsvCell(event.name),
+      budget,
+      spent,
+      calcRemaining(budget, spent),
+      formatRate(calcUsageRate(budget, spent)),
+      getStatus(budget, spent)
+    ].join(","));
+  }
+  // 합계 줄은 화면의 요약 카드와 같은 값이다. 요약 카드처럼 상태 칸은 비워 둔다
+  lines.push([
+    "합계",
+    totals.budget,
+    totals.spent,
+    calcRemaining(totals.budget, totals.spent),
+    formatRate(calcUsageRate(totals.budget, totals.spent)),
+    ""
+  ].join(","));
+  // 줄바꿈은 엑셀이 잘 읽는 \r\n을 쓴다
+  return lines.join("\r\n");
+}
+
 // 금액을 화면용 글자로 바꾼다. 예: 800000 → "800,000원", -50000 → "-50,000원"
 function formatWon(amount) {
   if (typeof amount !== "number" || !Number.isInteger(amount)) {
