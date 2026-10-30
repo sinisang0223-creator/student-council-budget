@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - HTML, CSS, 바닐라 JavaScript만 쓴다.
 - npm, 빌드 도구, 외부 서버, API 키를 쓰지 않는다. `index.html`을 브라우저로 바로 열면 동작해야 한다.
+  - 예외: 구글 시트 새 창(`https://sheets.new`)을 링크로 여는 것은 된다. 데이터를 보내지 않고 창만 연다. 파일은 사용자가 직접 올린다.
 - 계산 로직(사용률, 남은 금액, 초과 판단)은 `budget.js`에 따로 둔다.
 
 ## 화면과 데이터
