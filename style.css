@@ -93,12 +93,32 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
+/* 행사가 없어 사용률을 계산할 수 없을 때의 "–" */
+.hero-value.is-empty {
+  color: var(--color-border-strong);
+}
+
 /* 상태별 개수: ✓ 정상 1  ! 주의 1  ▲ 초과 1 */
 .status-counts {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+/* 행사가 없을 때 표 안의 안내 한 줄 */
+.empty-row td {
+  padding: 36px 14px;
+  text-align: center;
+  white-space: normal;
+  color: var(--color-text-secondary);
+}
+
+/* 안내 줄에는 마우스를 올려도 색을 바꾸지 않는다 */
+tbody tr.empty-row:hover td {
+  background: none;
 }
 
 /* 오른쪽 작은 카드는 이름과 숫자를 한 줄에 놓아 높이를 줄인다 */
@@ -329,6 +349,13 @@ button:hover {
   background: var(--color-primary-hover);
 }
 
+/* 누를 수 없는 버튼은 흐리게 보이고, 마우스를 올려도 색이 바뀌지 않는다 */
+button:disabled,
+button:disabled:hover {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* 키보드로 버튼에 왔을 때 테두리를 보여 준다 */
 button:focus-visible {
   outline: 3px solid var(--color-primary-soft);
@@ -386,6 +413,10 @@ button:focus-visible {
 
 .secondary-button:hover {
   background: var(--color-primary-soft);
+}
+
+.secondary-button:disabled:hover {
+  background: var(--color-surface);
 }
 
 /* 잘못된 입력의 이유. 비어 있을 때도 높이를 잡아서 화면이 들썩이지 않게 한다 */

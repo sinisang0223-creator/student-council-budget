@@ -113,6 +113,11 @@ function renderEvents() {
   tbody.textContent = "";
   spendInputs = new Map();
 
+  if (events.length === 0) {
+    renderEmptyRow(tbody);
+    return;
+  }
+
   for (const event of events) {
     const remaining = calcRemaining(event.budget, event.spent);
     const status = getStatus(event.budget, event.spent);
@@ -208,17 +213,49 @@ function renderSummary() {
   document.getElementById("total-budget").textContent = formatWon(totals.budget);
   document.getElementById("total-spent").textContent = formatWon(totals.spent);
 
-  // 전체가 예산을 넘으면 표처럼 남은 금액을 빨간 글자로 보인다
   const remaining = document.getElementById("total-remaining");
-  remaining.textContent = formatWon(calcRemaining(totals.budget, totals.spent));
-  remaining.className = isOverBudget(totals.budget, totals.spent) ? "card-value negative" : "card-value";
-
-  document.getElementById("total-rate").textContent =
-    formatRate(calcUsageRate(totals.budget, totals.spent));
+  const rate = document.getElementById("total-rate");
   fillMeter(document.getElementById("total-meter"), totals.budget, totals.spent,
     "meter meter-wide");
 
+  // 행사가 없으면 예산이 0원이라 사용률을 계산할 수 없다. 빈칸 대신 "–"와 안내를 보여 준다
+  if (events.length === 0) {
+    remaining.textContent = formatWon(0);
+    remaining.className = "card-value";
+    rate.textContent = "–";
+    rate.className = "hero-value is-empty";
+    document.getElementById("status-counts").textContent = "아직 행사가 없습니다";
+    return;
+  }
+
+  // 전체가 예산을 넘으면 표처럼 남은 금액을 빨간 글자로 보인다
+  remaining.textContent = formatWon(calcRemaining(totals.budget, totals.spent));
+  remaining.className = isOverBudget(totals.budget, totals.spent) ? "card-value negative" : "card-value";
+  rate.textContent = formatRate(calcUsageRate(totals.budget, totals.spent));
+  rate.className = "hero-value";
+
   renderStatusCounts();
+}
+
+// 행사가 없을 때 표 안에 보여 주는 안내 한 줄
+function renderEmptyRow(tbody) {
+  const td = document.createElement("td");
+  td.colSpan = 7;
+  td.append("아직 행사가 없습니다. 위의 ");
+  const strong = document.createElement("strong");
+  strong.textContent = "행사 추가";
+  td.append(strong, "에서 첫 행사를 넣어 주세요.");
+  const tr = document.createElement("tr");
+  tr.className = "empty-row";
+  tr.appendChild(td);
+  tbody.appendChild(tr);
+}
+
+// 행사가 없으면 내보낼 것이 없으므로 내보내기 버튼을 누를 수 없게 한다
+function renderButtons() {
+  const isEmpty = events.length === 0;
+  document.getElementById("export-csv").disabled = isEmpty;
+  document.getElementById("open-sheets").disabled = isEmpty;
 }
 
 // "✓ 정상 1  ! 주의 1  ▲ 초과 1"처럼 상태별 행사 개수를 보여 준다
@@ -237,10 +274,11 @@ function renderStatusCounts() {
   }
 }
 
-// 요약 카드와 표를 모두 다시 그린다
+// 요약 카드와 표, 버튼 상태를 모두 다시 그린다
 function render() {
   renderSummary();
   renderEvents();
+  renderButtons();
 }
 
 // "행사 추가" 버튼을 누르거나 입력칸에서 Enter를 누르면 실행된다
