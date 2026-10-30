@@ -1,2 +1,5 @@
 # 맥이 폴더마다 자동으로 만드는 설정 파일
 .DS_Store
+
+# Claude 답변 자동 저장 기록 (auto-capture)
+claude-answers/
