@@ -76,6 +76,16 @@ function calcRemaining(budget, spent) {
   return b - s;
 }
 
+// 사용률 막대의 길이(%). 0~100 사이로 자른다. 초과해도 막대가 칸 밖으로 넘치지 않게 100에서 멈춘다.
+// 반올림하지 않은 값을 돌려준다. 예: 예산 500,000원에 지출 560,000원(112%) → 100
+function calcBarWidth(budget, spent) {
+  const rate = calcUsageRate(budget, spent);
+  if (rate === null) {
+    return null;
+  }
+  return Math.min(rate, 100);
+}
+
 // 쓴 돈이 예산보다 많으면 true. 정확히 100%는 초과가 아니다.
 function isOverBudget(budget, spent) {
   const b = parseAmount(budget);

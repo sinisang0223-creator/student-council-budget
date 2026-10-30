@@ -82,6 +82,17 @@
     check("음수 입력이면 남은 금액 계산 불가", calcRemaining(800000, -1), null);
     check("쓴 돈 0원이면 예산 전체가 남음", calcRemaining(800000, 0), 800000);
 
+    // 사용률 막대 길이
+    check("막대 50%", calcBarWidth(800000, 400000), 50);
+    check("막대는 반올림하지 않음 (1/3)",
+      calcBarWidth(3, 1) > 33.33 && calcBarWidth(3, 1) < 33.34, true);
+    check("정확히 100%면 막대 100", calcBarWidth(800000, 800000), 100);
+    check("112% 초과여도 막대는 100에서 멈춤", calcBarWidth(500000, 560000), 100);
+    check("1원 초과여도 막대는 100", calcBarWidth(800000, 800001), 100);
+    check("지출 0원이면 막대 0", calcBarWidth(800000, 0), 0);
+    check("예산 0원이면 막대 계산 불가", calcBarWidth(0, 1000), null);
+    check("글자 입력이면 막대 계산 불가", calcBarWidth(800000, "abc"), null);
+
     // 초과 판단
     check("100% 미만은 초과 아님", isOverBudget(800000, 799999), false);
     check("정확히 100%는 초과 아님", isOverBudget(800000, 800000), false);

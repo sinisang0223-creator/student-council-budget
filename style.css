@@ -22,6 +22,12 @@
   --color-over: #c92a2a;
   --color-over-soft: #ffe3e3;
 
+  /* 사용률 막대를 채우는 색. 글자색보다 밝아서 옅은 바탕 위에서 잘 보인다 */
+  --color-ok-fill: #37b24d;
+  --color-warn-fill: #f59f00;
+  --color-over-fill: #e03131;
+  --color-over-edge: #8f1d1d;
+
   /* 모서리와 그림자 */
   --radius: 10px;
   --radius-small: 6px;
@@ -158,6 +164,59 @@ tbody tr:not(.error-row):hover td {
 .status-over {
   background: var(--color-over-soft);
   color: var(--color-over);
+}
+
+/* 사용률 칸: [막대] 83.4% */
+.rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 숫자 폭을 고정해서 행마다 막대 위치가 같게 한다 */
+.rate-text {
+  min-width: 3.6em;
+  text-align: right;
+}
+
+/* 막대 바탕. 색은 .status-ok 같은 상태 스타일의 옅은 바탕색을 그대로 쓴다 */
+.meter {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* 막대를 채우는 부분. 길이는 app.js가 정한다 */
+.meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.meter.status-ok .meter-fill {
+  background: var(--color-ok-fill);
+}
+
+.meter.status-warn .meter-fill {
+  background: var(--color-warn-fill);
+}
+
+.meter.status-over .meter-fill {
+  background: var(--color-over-fill);
+}
+
+/* 초과면 막대 끝을 진하게 칠해서 "100%를 넘었다"를 보여 준다 */
+.meter.status-over::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-over-edge);
 }
 
 /* 행사 추가 입력칸: 넓은 화면에서는 한 줄, 좁으면 아래로 넘어간다 */

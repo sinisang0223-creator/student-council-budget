@@ -49,6 +49,40 @@ const statusClass = {
   "초과": "status-over"
 };
 
+// 상태 글자 앞에 붙이는 기호. 색을 구분하기 어려운 사람도 상태를 알 수 있게 한다
+const statusIcon = {
+  "정상": "✓",
+  "주의": "!",
+  "초과": "▲"
+};
+
+// 사용률 칸: [막대] 83.4% 모양으로 만든다
+// 막대 색은 상태를 따르고, 숫자 글자는 그대로 검은 글자로 둔다
+function makeRateCell(budget, spent, status) {
+  const meter = document.createElement("span");
+  meter.className = "meter " + statusClass[status];
+  // 막대는 옆의 숫자와 같은 내용이라 화면 읽기 프로그램은 건너뛰게 한다
+  meter.setAttribute("aria-hidden", "true");
+  const fill = document.createElement("span");
+  fill.className = "meter-fill";
+  fill.style.width = calcBarWidth(budget, spent) + "%";
+  meter.appendChild(fill);
+
+  const rateText = document.createElement("span");
+  rateText.className = "rate-text";
+  rateText.textContent = formatRate(calcUsageRate(budget, spent));
+
+  const wrap = document.createElement("span");
+  wrap.className = "rate";
+  wrap.appendChild(meter);
+  wrap.appendChild(rateText);
+
+  const td = document.createElement("td");
+  td.className = "num";
+  td.appendChild(wrap);
+  return td;
+}
+
 // 표의 칸 하나를 만든다. textContent를 써서 글자가 그대로 보이게 한다
 function makeCell(text, className) {
   const td = document.createElement("td");
@@ -79,11 +113,11 @@ function renderEvents() {
     tr.appendChild(makeCell(formatWon(event.budget), "num"));
     tr.appendChild(makeCell(formatWon(event.spent), "num"));
     tr.appendChild(makeCell(formatWon(remaining), isOverBudget(event.budget, event.spent) ? "num negative" : "num"));
-    tr.appendChild(makeCell(formatRate(calcUsageRate(event.budget, event.spent)), "num"));
+    tr.appendChild(makeRateCell(event.budget, event.spent, status));
 
     const badge = document.createElement("span");
     badge.className = "status " + statusClass[status];
-    badge.textContent = status;
+    badge.textContent = statusIcon[status] + " " + status;
     const statusCell = document.createElement("td");
     statusCell.appendChild(badge);
     tr.appendChild(statusCell);
