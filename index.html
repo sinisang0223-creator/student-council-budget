@@ -59,8 +59,17 @@
       <!-- 제목과 내보내기 버튼을 한 줄에 놓는다 -->
       <div class="section-header">
         <h2>행사별 예산</h2>
-        <button id="export-csv" type="button" class="secondary-button">CSV로 내보내기</button>
+        <div class="header-buttons">
+          <button id="export-csv" type="button" class="secondary-button">CSV로 내보내기</button>
+          <button id="open-sheets" type="button" class="secondary-button">구글 시트로 열기</button>
+        </div>
       </div>
+      <!-- "구글 시트로 열기"를 누른 뒤에만 보이는 안내. 데이터는 구글로 보내지 않고, 사용자가 직접 올린다 -->
+      <p id="sheets-help" class="help-message" hidden>
+        CSV 파일을 내려받고 새 창에 빈 구글 시트를 열었습니다.
+        구글 시트에서 <strong>파일 → 가져오기 → 업로드</strong>를 누르고 방금 내려받은 파일을 골라 주세요.
+        새 창이 열리지 않았다면 <a href="https://sheets.new" target="_blank" rel="noopener">여기</a>를 눌러 주세요.
+      </p>
       <div class="table-wrap">
         <table>
           <thead>

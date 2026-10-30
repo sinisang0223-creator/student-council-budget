@@ -315,7 +315,20 @@ function handleExportCsv() {
   }, 1000);
 }
 
+// 빈 구글 시트를 새로 만드는 주소. 링크로 창만 열고, 데이터는 보내지 않는다 (CLAUDE.md 예외)
+const SHEETS_URL = "https://sheets.new";
+
+// "구글 시트로 열기" 버튼: CSV를 내려받고, 새 창에 빈 구글 시트를 연다
+// 구글 시트에 내용을 자동으로 넣으려면 API가 필요하므로, 파일은 사용자가 직접 올리도록 안내한다
+function handleOpenSheets() {
+  handleExportCsv();
+  // noopener: 새 창이 이 페이지를 건드리지 못하게 한다
+  window.open(SHEETS_URL, "_blank", "noopener");
+  document.getElementById("sheets-help").hidden = false;
+}
+
 document.getElementById("add-event-form").addEventListener("submit", handleAddEvent);
 document.getElementById("export-csv").addEventListener("click", handleExportCsv);
+document.getElementById("open-sheets").addEventListener("click", handleOpenSheets);
 
 render();
