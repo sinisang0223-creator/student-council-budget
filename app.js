@@ -217,6 +217,37 @@ function handleAddEvent(e) {
   nameInput.focus();
 }
 
+// 오늘 날짜를 "2026-10-30" 모양의 글자로 만든다. 파일 이름에 쓴다
+function todayText() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return now.getFullYear() + "-" + month + "-" + day;
+}
+
+// "CSV로 내보내기" 버튼을 누르면 지금 행사 목록을 CSV 파일로 내려받는다
+function handleExportCsv() {
+  const csv = makeCsv(events);
+  if (csv === null) {
+    return;
+  }
+  // 맨 앞의 ﻿(BOM)는 "이 파일은 UTF-8"이라는 표시다. 없으면 엑셀에서 한글이 깨진다
+  const file = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  // 파일을 가리키는 임시 주소를 만들고, 보이지 않는 링크를 눌러 내려받게 한다
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "학생회-예산-" + todayText() + ".csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // 내려받기가 시작된 뒤에 임시 주소를 지운다. 바로 지우면 일부 브라우저에서 내려받기가 실패한다
+  setTimeout(function () {
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
 document.getElementById("add-event-form").addEventListener("submit", handleAddEvent);
+document.getElementById("export-csv").addEventListener("click", handleExportCsv);
 
 render();

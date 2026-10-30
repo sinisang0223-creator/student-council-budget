@@ -150,6 +150,32 @@ button:hover {
   background: #1550a8;
 }
 
+/* 제목 오른쪽에 버튼을 놓는 줄 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 32px 0 12px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+/* 입력 버튼(파란색)과 구분되는 보조 버튼 */
+.secondary-button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  color: #1c64d1;
+  background: #fff;
+  border: 1px solid #1c64d1;
+}
+
+.secondary-button:hover {
+  background: #e7f0fd;
+}
+
 /* 잘못된 입력의 이유. 비어 있을 때도 높이를 잡아서 화면이 들썩이지 않게 한다 */
 .error-message {
   min-height: 1.4em;
