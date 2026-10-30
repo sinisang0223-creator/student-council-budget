@@ -1,5 +1,6 @@
-// 화면 채우기
-// 계산은 budget.js 함수에 맡기고, 여기서는 그 결과를 화면에 넣기만 한다.
+// 화면 채우기와 버튼 동작
+// 화면 그리기, 행사 추가·지출 입력 처리, 브라우저 저장과 불러오기, CSV 내려받기를 맡는다.
+// 계산과 검사는 budget.js 함수에 맡기고, 여기서는 그 결과를 화면에 넣기만 한다.
 
 // 가짜 예시 데이터 (실제 행사·사람 정보 아님). 저장된 목록이 없을 때 보여 준다
 const sampleEvents = [
@@ -77,7 +78,7 @@ function renderEvents() {
     tr.appendChild(makeCell(event.name));
     tr.appendChild(makeCell(formatWon(event.budget), "num"));
     tr.appendChild(makeCell(formatWon(event.spent), "num"));
-    tr.appendChild(makeCell(formatWon(remaining), remaining < 0 ? "num negative" : "num"));
+    tr.appendChild(makeCell(formatWon(remaining), isOverBudget(event.budget, event.spent) ? "num negative" : "num"));
     tr.appendChild(makeCell(formatRate(calcUsageRate(event.budget, event.spent)), "num"));
 
     const badge = document.createElement("span");
@@ -231,8 +232,8 @@ function handleExportCsv() {
   if (csv === null) {
     return;
   }
-  // 맨 앞의 ﻿(BOM)는 "이 파일은 UTF-8"이라는 표시다. 없으면 엑셀에서 한글이 깨진다
-  const file = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  // 맨 앞의 \uFEFF(BOM)는 "이 파일은 UTF-8"이라는 표시다. 없으면 엑셀에서 한글이 깨진다
+  const file = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   // 파일을 가리키는 임시 주소를 만들고, 보이지 않는 링크를 눌러 내려받게 한다
   const url = URL.createObjectURL(file);
   const link = document.createElement("a");
