@@ -8,6 +8,21 @@ const events = [
   { name: "학과 축제 부스", budget: 500000, spent: 560000 }
 ];
 
+// 브라우저 저장 공간(localStorage)에서 행사 목록을 찾을 때 쓰는 이름표
+const STORAGE_KEY = "student-council-budget-events";
+
+// 행사 목록 전체를 글자(JSON)로 바꿔 브라우저에 저장한다
+// 시크릿 모드처럼 저장이 막힌 브라우저에서는 오류가 나므로, 화면은 그대로 두고 문구만 보여 준다
+function saveEvents() {
+  const saveError = document.getElementById("save-error");
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    saveError.textContent = "";
+  } catch (e) {
+    saveError.textContent = "저장되지 않았습니다.";
+  }
+}
+
 // 상태 글자에 맞는 색깔 스타일 이름 (style.css)
 const statusClass = {
   "정상": "status-ok",
@@ -101,6 +116,7 @@ function handleAddSpending(event, input, tr) {
     return;
   }
   event.spent = result.spent;
+  saveEvents();
   // 다시 그리면 입력칸과 오류 문구는 저절로 비워진다
   render();
   // 다시 그리면서 입력칸이 새로 만들어졌으므로, 같은 행사의 새 금액 칸으로 커서를 옮긴다
@@ -173,6 +189,7 @@ function handleAddEvent(e) {
 
   // 새 행사는 아직 지출이 없으므로 0원으로 시작한다
   events.push({ name: name, budget: result.amount, spent: 0 });
+  saveEvents();
   render();
 
   // 다음 행사를 바로 입력할 수 있게 칸을 비운다
