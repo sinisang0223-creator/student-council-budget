@@ -251,11 +251,16 @@ function renderEmptyRow(tbody) {
   tbody.appendChild(tr);
 }
 
-// 행사가 없으면 내보낼 것이 없으므로 내보내기 버튼을 누를 수 없게 한다
+// 행사가 없으면 내보내거나 지울 것이 없으므로 버튼을 누를 수 없게 한다
 function renderButtons() {
   const isEmpty = events.length === 0;
   document.getElementById("export-csv").disabled = isEmpty;
   document.getElementById("open-sheets").disabled = isEmpty;
+  document.getElementById("reset-events").disabled = isEmpty;
+  // 행사를 다시 추가하면 "새로 시작했습니다" 안내는 더 필요 없다
+  if (!isEmpty) {
+    document.getElementById("reset-done").hidden = true;
+  }
 }
 
 // "✓ 정상 1  ! 주의 1  ▲ 초과 1"처럼 상태별 행사 개수를 보여 준다
@@ -331,8 +336,16 @@ function todayText() {
   return now.getFullYear() + "-" + month + "-" + day;
 }
 
-// "CSV로 내보내기" 버튼을 누르면 지금 행사 목록을 CSV 파일로 내려받는다
-function handleExportCsv() {
+// 지금 시각을 "1530"(15시 30분) 모양의 글자로 만든다. 백업 파일 이름에 쓴다
+function timeText() {
+  const now = new Date();
+  const hour = String(now.getHours()).padStart(2, "0");
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  return hour + minute;
+}
+
+// 지금 행사 목록을 CSV 파일로 내려받는다. 내보내기와 백업이 같이 쓴다
+function downloadCsv(fileName) {
   const csv = makeCsv(events);
   if (csv === null) {
     return;
@@ -343,7 +356,7 @@ function handleExportCsv() {
   const url = URL.createObjectURL(file);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "학생회-예산-" + todayText() + ".csv";
+  link.download = fileName;
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -351,6 +364,34 @@ function handleExportCsv() {
   setTimeout(function () {
     URL.revokeObjectURL(url);
   }, 1000);
+}
+
+// "CSV로 내보내기" 버튼을 누르면 지금 행사 목록을 CSV 파일로 내려받는다
+function handleExportCsv() {
+  downloadCsv("학생회-예산-" + todayText() + ".csv");
+}
+
+// "새로 시작하기" 버튼: 확인을 받고, 지금 내용을 CSV로 백업한 뒤, 행사를 모두 지운다
+// 백업 CSV는 다시 불러올 수 없다(CSV는 내보내기만 함). 엑셀이나 구글 시트에서 보는 기록용이다
+function handleResetEvents() {
+  const ok = window.confirm(
+    "정말 지울까요?\n\n"
+    + "행사 " + events.length + "개와 지출 기록을 모두 지웁니다.\n"
+    + "지우기 전에 지금 내용을 CSV 파일로 내려받습니다. 다운로드 폴더를 확인해 주세요."
+  );
+  if (!ok) {
+    return;
+  }
+
+  // 지우기 전에 백업한다. 이름에 시각을 넣어 보통 내보내기 파일과 구분한다
+  downloadCsv("학생회-예산-백업-" + todayText() + "-" + timeText() + ".csv");
+
+  // events는 const라서 새 목록을 넣을 수 없으므로, 안의 행사를 모두 빼서 비운다
+  events.length = 0;
+  saveEvents();
+  render();
+  document.getElementById("sheets-help").hidden = true;
+  document.getElementById("reset-done").hidden = false;
 }
 
 // 빈 구글 시트를 새로 만드는 주소. 링크로 창만 열고, 데이터는 보내지 않는다 (CLAUDE.md 예외)
@@ -367,6 +408,7 @@ function handleOpenSheets() {
 
 document.getElementById("add-event-form").addEventListener("submit", handleAddEvent);
 document.getElementById("export-csv").addEventListener("click", handleExportCsv);
+document.getElementById("reset-events").addEventListener("click", handleResetEvents);
 document.getElementById("open-sheets").addEventListener("click", handleOpenSheets);
 
 render();
