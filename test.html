@@ -143,6 +143,36 @@
     check("지출 0원인 새 행사도 합계에 들어감",
       calcTotals([{ budget: 1000, spent: 0 }, { budget: 2000, spent: 500 }]).budget, 3000);
 
+    // 저장된 목록 읽기
+    const savedText = JSON.stringify(sampleEvents);
+    check("저장한 목록을 그대로 되돌림",
+      JSON.stringify(parseSavedEvents(savedText)), savedText);
+    check("지출 0원인 행사도 읽음",
+      parseSavedEvents('[{"name":"개강총회","budget":1000,"spent":0}]')[0].spent, 0);
+    check("빈 목록도 읽음", parseSavedEvents("[]").length, 0);
+    check("저장된 것이 없으면 null", parseSavedEvents(null), null);
+    check("빈 글자면 null", parseSavedEvents(""), null);
+    check("JSON 모양이 깨지면 null", parseSavedEvents('[{"name":'), null);
+    check("목록이 아니면 null", parseSavedEvents('{"name":"체육대회"}'), null);
+    check("행사 자리에 숫자가 있으면 null", parseSavedEvents("[1]"), null);
+    check("행사 자리에 null이 있으면 null", parseSavedEvents("[null]"), null);
+    check("행사명이 비어 있으면 null",
+      parseSavedEvents('[{"name":"  ","budget":1000,"spent":0}]'), null);
+    check("행사명이 없으면 null", parseSavedEvents('[{"budget":1000,"spent":0}]'), null);
+    check("같은 이름이 두 번 있으면 null",
+      parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0},'
+        + '{"name":" 체육대회 ","budget":2000,"spent":0}]'), null);
+    check("예산 0원이면 null", parseSavedEvents('[{"name":"체육대회","budget":0,"spent":0}]'), null);
+    check("지출이 음수면 null", parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":-1}]'), null);
+    check("지출이 소수면 null", parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0.5}]'), null);
+    check("지출이 없으면 null", parseSavedEvents('[{"name":"체육대회","budget":1000}]'), null);
+    check("하나만 잘못돼도 전체 null",
+      parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0},'
+        + '{"name":"개강총회","budget":"abc","spent":0}]'), null);
+    check("다른 값이 섞여 있으면 버림",
+      JSON.stringify(parseSavedEvents('[{"name":"체육대회","budget":1000,"spent":0,"memo":"x"}]')),
+      '[{"name":"체육대회","budget":1000,"spent":0}]');
+
     // 금액 표시
     check("800,000원 표시", formatWon(800000), "800,000원");
     check("0원 표시", formatWon(0), "0원");

@@ -131,6 +131,48 @@ function hasEventName(events, name) {
   return false;
 }
 
+// 브라우저에 저장해 둔 글자(JSON)를 행사 목록으로 되돌린다.
+// 저장된 것이 없거나, 하나라도 규칙에 맞지 않으면 null (화면에서는 예시 행사로 시작한다)
+// 규칙: 행사명은 비어 있지 않고 겹치지 않음, 예산은 1원 이상, 지출은 0원 이상의 정수
+// 예: '[{"name":"체육대회","budget":1200000,"spent":0}]' → [{ name: "체육대회", budget: 1200000, spent: 0 }]
+//     '[{"name":"","budget":1000,"spent":0}]'           → null
+function parseSavedEvents(text) {
+  if (typeof text !== "string") {
+    return null;
+  }
+  let list;
+  try {
+    list = JSON.parse(text);
+  } catch (e) {
+    // JSON 모양이 깨진 글자
+    return null;
+  }
+  if (!Array.isArray(list)) {
+    return null;
+  }
+
+  const events = [];
+  for (const item of list) {
+    if (typeof item !== "object" || item === null) {
+      return null;
+    }
+    if (typeof item.name !== "string" || item.name.trim() === "") {
+      return null;
+    }
+    if (hasEventName(events, item.name)) {
+      return null;
+    }
+    const budget = parseAmount(item.budget);
+    const spent = parseAmount(item.spent, 0);
+    if (budget === null || spent === null) {
+      return null;
+    }
+    // 필요한 세 가지만 옮겨 담는다. 다른 값이 섞여 있어도 버린다
+    events.push({ name: item.name.trim(), budget: budget, spent: spent });
+  }
+  return events;
+}
+
 // 행사 목록의 총 예산과 총 지출을 더한다.
 // 목록 예: [{ name: "체육대회", budget: 1200000, spent: 1200000 }, ...]
 // 잘못된 금액이 하나라도 있으면 null (화면에서는 입력할 때 checkAmount로 미리 막는다)

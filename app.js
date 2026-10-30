@@ -1,8 +1,8 @@
 // 화면 채우기
 // 계산은 budget.js 함수에 맡기고, 여기서는 그 결과를 화면에 넣기만 한다.
 
-// 가짜 예시 데이터 (실제 행사·사람 정보 아님)
-const events = [
+// 가짜 예시 데이터 (실제 행사·사람 정보 아님). 저장된 목록이 없을 때 보여 준다
+const sampleEvents = [
   { name: "신입생 환영회", budget: 800000, spent: 667200 },
   { name: "체육대회", budget: 1200000, spent: 1200000 },
   { name: "학과 축제 부스", budget: 500000, spent: 560000 }
@@ -10,6 +10,24 @@ const events = [
 
 // 브라우저 저장 공간(localStorage)에서 행사 목록을 찾을 때 쓰는 이름표
 const STORAGE_KEY = "student-council-budget-events";
+
+// 저장해 둔 행사 목록을 불러온다
+// 저장된 것이 없거나, 읽기가 막혔거나, 내용이 깨졌으면 예시 행사로 시작한다
+function loadEvents() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(STORAGE_KEY);
+  } catch (e) {
+    // 시크릿 모드처럼 읽기가 막힌 브라우저. 아래에서 예시 행사를 쓴다
+  }
+  const loaded = parseSavedEvents(saved);
+  if (loaded === null) {
+    return sampleEvents;
+  }
+  return loaded;
+}
+
+const events = loadEvents();
 
 // 행사 목록 전체를 글자(JSON)로 바꿔 브라우저에 저장한다
 // 시크릿 모드처럼 저장이 막힌 브라우저에서는 오류가 나므로, 화면은 그대로 두고 문구만 보여 준다
