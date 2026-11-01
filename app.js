@@ -30,6 +30,32 @@ function loadEvents() {
 
 const events = loadEvents();
 
+// 지난 예산안("새로 시작하기" 전의 목록)을 저장하는 이름표. 지금 예산안과 이름표가 달라 섞이지 않는다
+const HISTORY_KEY = "student-council-budget-history";
+
+// 저장해 둔 지난 예산안을 불러온다. 없거나 읽기가 막혔거나 깨졌으면 빈 목록
+function loadHistory() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(HISTORY_KEY);
+  } catch (e) {
+    // 시크릿 모드처럼 읽기가 막힌 브라우저. 빈 목록으로 시작한다
+  }
+  return parseSavedHistory(saved);
+}
+
+// 지난 예산안은 "새로 시작하기"를 누를 때만 늘어나므로 let으로 두고 새 목록으로 바꿔 넣는다
+let pastBudgets = loadHistory();
+
+// 지난 예산안 목록을 브라우저에 저장한다. 막히면 행사 저장과 같은 문구를 보여 준다
+function saveHistory() {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(pastBudgets));
+  } catch (e) {
+    document.getElementById("save-error").textContent = "저장되지 않았습니다.";
+  }
+}
+
 // 행사 목록 전체를 글자(JSON)로 바꿔 브라우저에 저장한다
 // 시크릿 모드처럼 저장이 막힌 브라우저에서는 오류가 나므로, 화면은 그대로 두고 문구만 보여 준다
 function saveEvents() {
@@ -102,6 +128,16 @@ function makeCell(text, className) {
   return td;
 }
 
+// "✓ 정상"처럼 기호와 색이 붙은 상태 칸을 만든다. 행사별 표와 지난 예산안 표가 같이 쓴다
+function makeStatusCell(status) {
+  const badge = document.createElement("span");
+  badge.className = "status " + statusClass[status];
+  badge.textContent = statusIcon[status] + " " + status;
+  const td = document.createElement("td");
+  td.appendChild(badge);
+  return td;
+}
+
 // 행사마다 지출 금액 칸을 기억해 둔다. 다시 그린 뒤 커서를 돌려놓을 때 쓴다
 // Map은 "행사 → 그 행사의 금액 칸"처럼 짝을 지어 저장하는 상자다
 let spendInputs = new Map();
@@ -128,14 +164,7 @@ function renderEvents() {
     tr.appendChild(makeCell(formatWon(event.spent), "num"));
     tr.appendChild(makeCell(formatWon(remaining), isOverBudget(event.budget, event.spent) ? "num negative" : "num"));
     tr.appendChild(makeRateCell(event.budget, event.spent));
-
-    const badge = document.createElement("span");
-    badge.className = "status " + statusClass[status];
-    badge.textContent = statusIcon[status] + " " + status;
-    const statusCell = document.createElement("td");
-    statusCell.appendChild(badge);
-    tr.appendChild(statusCell);
-
+    tr.appendChild(makeStatusCell(status));
     tr.appendChild(makeSpendCell(event, tr));
 
     tbody.appendChild(tr);
@@ -418,12 +447,84 @@ function handleResetEvents() {
   }
   downloadCsv(backupName);
 
+  // 지우기 전의 목록을 지난 예산안으로 복사해 둔다. addHistory가 복사하므로 아래에서 비워도 남는다
+  const time = timeText();
+  pastBudgets = addHistory(pastBudgets, events, todayText() + " " + time.slice(0, 2) + ":" + time.slice(2));
+
   // events는 const라서 새 목록을 넣을 수 없으므로, 안의 행사를 모두 빼서 비운다
   events.length = 0;
   saveEvents();
+  // saveEvents가 성공하면 저장 실패 문구를 지우므로, 지난 예산안은 그 뒤에 저장한다
+  saveHistory();
   render();
+  renderHistory();
   document.getElementById("sheets-help").hidden = true;
   document.getElementById("reset-done").hidden = false;
+}
+
+// "지난 예산안 보기" 목록을 그린다. 한 줄에 하나씩, 누르면 그때의 표를 보여 준다
+// 목록을 다시 그리면 보던 표는 닫는다 (새로 추가되면 순서가 바뀌기 때문)
+function renderHistory() {
+  const list = document.getElementById("history-list");
+  list.textContent = "";
+  document.getElementById("history-view").hidden = true;
+
+  if (pastBudgets.length === 0) {
+    const li = document.createElement("li");
+    li.className = "history-empty";
+    li.textContent = "아직 지난 예산안이 없습니다.";
+    list.appendChild(li);
+    return;
+  }
+
+  for (const item of pastBudgets) {
+    const totals = calcTotals(item.events);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary-button";
+    button.textContent = item.savedAt + " · 행사 " + item.events.length + "개 · 예산 " + formatWon(totals.budget);
+    button.addEventListener("click", function () {
+      showHistory(item);
+    });
+    const li = document.createElement("li");
+    li.appendChild(button);
+    list.appendChild(li);
+  }
+}
+
+// 지난 예산안 하나를 읽기 전용 표로 보여 준다. 입력칸이 없고, 지금 예산안(events)은 건드리지 않는다
+function showHistory(item) {
+  document.getElementById("history-title").textContent = item.savedAt + " 예산안 (보기만 가능)";
+
+  const tbody = document.getElementById("history-rows");
+  tbody.textContent = "";
+  for (const event of item.events) {
+    const tr = document.createElement("tr");
+    tr.appendChild(makeCell(event.name));
+    tr.appendChild(makeCell(formatWon(event.budget), "num"));
+    tr.appendChild(makeCell(formatWon(event.spent), "num"));
+    tr.appendChild(makeCell(formatWon(calcRemaining(event.budget, event.spent)),
+      isOverBudget(event.budget, event.spent) ? "num negative" : "num"));
+    tr.appendChild(makeRateCell(event.budget, event.spent));
+    tr.appendChild(makeStatusCell(getStatus(event.budget, event.spent)));
+    tbody.appendChild(tr);
+  }
+
+  // 맨 아래 합계 줄. CSV 합계 줄처럼 상태 칸은 비워 둔다
+  const totals = calcTotals(item.events);
+  const tfoot = document.getElementById("history-total");
+  tfoot.textContent = "";
+  const tr = document.createElement("tr");
+  tr.appendChild(makeCell("합계"));
+  tr.appendChild(makeCell(formatWon(totals.budget), "num"));
+  tr.appendChild(makeCell(formatWon(totals.spent), "num"));
+  tr.appendChild(makeCell(formatWon(calcRemaining(totals.budget, totals.spent)),
+    isOverBudget(totals.budget, totals.spent) ? "num negative" : "num"));
+  tr.appendChild(makeCell(formatRate(calcUsageRate(totals.budget, totals.spent)), "num"));
+  tr.appendChild(makeCell(""));
+  tfoot.appendChild(tr);
+
+  document.getElementById("history-view").hidden = false;
 }
 
 // 빈 구글 시트를 새로 만드는 주소. 링크로 창만 열고, 데이터는 보내지 않는다 (CLAUDE.md 예외)
@@ -443,5 +544,9 @@ document.getElementById("add-event-form").addEventListener("submit", handleAddEv
 document.getElementById("export-csv").addEventListener("click", handleExportCsv);
 document.getElementById("reset-events").addEventListener("click", handleResetEvents);
 document.getElementById("open-sheets").addEventListener("click", handleOpenSheets);
+document.getElementById("history-close").addEventListener("click", function () {
+  document.getElementById("history-view").hidden = true;
+});
 
 render();
+renderHistory();

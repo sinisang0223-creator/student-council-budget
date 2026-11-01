@@ -2,7 +2,7 @@
 
 새 대화에서 이어서 작업할 때 이 파일을 먼저 읽는다. 작업 방식과 기술 제약은 `CLAUDE.md`에 있다.
 
-**상태 (2026-11-01): 1~8단계 완성(8-5 브라우저 확인 끝). 9단계(CSV 파일 이름 입력, 지난 예산안 보관) 진행 중. 9-1 코드 완료, 사용자 브라우저 확인 전.** 아래 "다음 할 일"부터 이어서 한다.
+**상태 (2026-11-01): 1~8단계 완성(8-5 브라우저 확인 끝). 9단계(CSV 파일 이름 입력, 지난 예산안 보관) 코드 완료. 9-1은 브라우저 확인 끝, 9-2는 사용자 브라우저 확인 전.** 아래 "다음 할 일"부터 이어서 한다.
 
 ## 끝낸 단계
 
@@ -30,9 +30,10 @@
 | 8-4단계 | "구글 시트로 열기" 버튼과 가져오기 안내 | `329550c` |
 | 8-5-1단계 | 행사가 0개일 때 화면과 내보내기 버튼 막기 | `1637509` |
 | 8-5-2단계 | "새로 시작하기" 버튼(확인창, CSV 백업 후 비우기) | `22cd316` |
-| 9-1단계 | CSV 파일 이름 직접 입력(`checkFileName`, `makeCsvFileName`) | (이번 커밋) |
+| 9-1단계 | CSV 파일 이름 직접 입력(`checkFileName`, `makeCsvFileName`) | `e174498` |
+| 9-2단계 | 지난 예산안 보관과 읽기 전용 보기(`addHistory`, `parseSavedHistory`) | (이번 커밋) |
 
-`test.html` 기준 테스트 173개가 모두 통과한다.
+`test.html` 기준 테스트 191개가 모두 통과한다.
 
 ### 사용자 확인
 - 5단계: 브라우저에서 직접 확인했다(저장 내용 확인, 새로고침, 브라우저 다시 열기, `abc`로 망가뜨리면 예시 3개로 돌아오기).
@@ -42,16 +43,17 @@
 - **Safari에서는 7-3 목록을 아직 확인하지 않았다.**
 - 8-1~8-4: 브라우저에서 직접 확인했다. 8-4는 구글 시트 가져오기까지 확인했다.
 - 8-5-1, 8-5-2: 2026-11-01 브라우저에서 1~6번 모두 확인했다(취소, 백업 파일, 백업 내용, 빈 화면, 새로고침, 다시 행사 추가).
-- **9-1: 아직 브라우저에서 확인하지 않았다.** 헤드리스 Chrome 가짜 화면으로만 확인했다(기본값, 비움, 취소, 금지 글자 후 다시 묻기, `.csv` 중복 없음, 구글 시트는 묻지 않음, 백업 이름 취소 시 지우기 취소).
+- 9-1: 2026-11-01 브라우저에서 1~5번 모두 확인했다(기본값, 비움, 취소, 금지 글자 후 다시 묻기, 구글 시트는 묻지 않음). 6번(백업 이름 취소)은 헤드리스로만 확인했다.
+- **9-2: 아직 브라우저에서 확인하지 않았다.** 헤드리스 Chrome 가짜 화면으로만 확인했다(목록 추가, 읽기 전용 표와 합계, 지금 예산안 안 바뀜, 닫기, 12번 지워도 10개, 보관 저장 막힘 문구).
 
 테스트 실행 방법: 이 컴퓨터에는 node가 없다. 헤드리스 Chrome(`--headless=new --dump-dom`)으로 `test.html`을 열어 "통과 N개 / 실패 0개"를 읽는다. 화면 동작은 `index.html`을 본뜬 임시 페이지를 scratchpad에 만들어 같은 방식으로 확인한다.
 
 ## 파일 역할
 
 - `budget.js`: 계산과 입력 규칙 전부. 잘못된 입력이면 계산하지 않고 `null`을 돌려준다.
-  - `checkAmount`, `parseAmount`, `calcUsageRate`, `calcRemaining`, `isOverBudget`, `getStatus`, `addSpending`, `hasEventName`, `parseSavedEvents`, `calcTotals`, `calcBarWidth`, `countStatuses`, `escapeCsvCell`, `makeCsv`, `checkFileName`, `makeCsvFileName`, `formatWon`, `formatRate`
-- `app.js`: 가짜 예시 행사 3개(`sampleEvents`), 저장과 불러오기(`saveEvents`, `loadEvents`), 화면 그리기(`renderSummary`, `renderEvents`, `renderStatusCounts`, `renderEmptyRow`, `renderButtons`, 막대는 `fillMeter`, `makeRateCell`), 입력 처리, CSV 내려받기(`downloadCsv`, `handleExportCsv`, `defaultCsvName`, `askCsvFileName`, `todayText`, `timeText`), 구글 시트(`handleOpenSheets`), 새로 시작하기(`handleResetEvents`). 계산은 직접 하지 않고 `budget.js` 함수를 부른다.
-- `index.html`: 화면 구조. 위에서부터 제목 → 저장 실패 문구(`save-error`) → 요약(큰 카드 `card-hero` + 작은 카드 3개) → 행사 추가 → "행사별 예산" 제목과 버튼 2개(`export-csv`, `open-sheets`) → 안내 2개(`reset-done`, `sheets-help`, 평소엔 숨김) → 표 → 맨 아래 "새로 시작하기" 구역(`reset-events`). `budget.js`를 먼저 불러온 다음 `app.js`를 불러온다.
+  - `checkAmount`, `parseAmount`, `calcUsageRate`, `calcRemaining`, `isOverBudget`, `getStatus`, `addSpending`, `hasEventName`, `parseSavedEvents`, `calcTotals`, `calcBarWidth`, `countStatuses`, `escapeCsvCell`, `makeCsv`, `addHistory`, `parseSavedHistory`, `checkFileName`, `makeCsvFileName`, `formatWon`, `formatRate`
+- `app.js`: 가짜 예시 행사 3개(`sampleEvents`), 저장과 불러오기(`saveEvents`, `loadEvents`), 화면 그리기(`renderSummary`, `renderEvents`, `renderStatusCounts`, `renderEmptyRow`, `renderButtons`, 막대는 `fillMeter`, `makeRateCell`), 입력 처리, CSV 내려받기(`downloadCsv`, `handleExportCsv`, `defaultCsvName`, `askCsvFileName`, `todayText`, `timeText`), 구글 시트(`handleOpenSheets`), 새로 시작하기(`handleResetEvents`), 지난 예산안(`loadHistory`, `saveHistory`, `renderHistory`, `showHistory`, 상태 칸은 `makeStatusCell`). 계산은 직접 하지 않고 `budget.js` 함수를 부른다.
+- `index.html`: 화면 구조. 위에서부터 제목 → 저장 실패 문구(`save-error`) → 요약(큰 카드 `card-hero` + 작은 카드 3개) → 행사 추가 → "행사별 예산" 제목과 버튼 2개(`export-csv`, `open-sheets`) → 안내 2개(`reset-done`, `sheets-help`, 평소엔 숨김) → 표 → "지난 예산안 보기"(`history-list`, 누르면 `history-view`) → 맨 아래 "새로 시작하기" 구역(`reset-events`). `budget.js`를 먼저 불러온 다음 `app.js`를 불러온다.
 - `style.css`: 모양. 색은 파일 맨 위 `:root`에 이름표로 모여 있다. 데이터를 바꾸지 않는 버튼은 흰 바탕 보조 버튼(`.secondary-button`), 지우는 버튼은 빨간 테두리(`.danger-button`)로 구분한다.
 - `test.html`: 브라우저로 열면 `budget.js` 테스트 결과(✅/❌)를 보여 준다.
 
@@ -116,6 +118,15 @@
 - 앞뒤 공백은 지우고, 끝에 `.csv`를 붙인다. 이미 `.csv`(대문자 포함)로 끝나면 또 붙이지 않는다.
 - **"구글 시트로 열기"는 묻지 않고 기본 이름**을 쓴다. 입력창을 거치면 새 창이 팝업으로 막힐 수 있어서다.
 
+### 지난 예산안 (9-2)
+- "새로 시작하기"에서 백업 CSV를 받은 뒤, 지우기 직전 목록을 `{ savedAt: "YYYY-MM-DD HH:MM", events }`로 이름표 `student-council-budget-history`에 저장한다. 최신이 맨 앞, **최대 10개**(넘으면 가장 오래된 것부터 버림).
+- 화면은 표 아래, "새로 시작하기" 위. 목록 한 줄은 `2026-11-01 14:30 · 행사 3개 · 예산 2,300,000원` 버튼. 누르면 입력칸 없는 표와 합계 줄, "닫기". 없으면 "아직 지난 예산안이 없습니다."
+- `addHistory`가 행사를 복사해서 넣으므로 지금 예산안(`events`)과 서로 영향이 없다.
+- 불러올 때 깨진 항목만 빼고 나머지는 살린다. 전체가 깨졌으면 빈 목록.
+- 보관 저장이 막히면 "저장되지 않았습니다."를 보여 주고 지우기는 진행한다(백업 CSV는 이미 받음). 화면 목록에는 이번 창을 닫기 전까지 보인다.
+- 앱 안의 변수 이름은 `pastBudgets`다. `history`는 브라우저에 이미 있는 이름(`window.history`)이라 피했다.
+- 하지 않은 것: 지난 예산안 지우기, 지금 예산안으로 되돌리기, 지난 예산안 CSV 내보내기.
+
 ### 디자인 (8단계)
 - 기능과 계산은 바꾸지 않고 모양만 바꾼다. 외부 글꼴이나 라이브러리는 쓰지 않는다. 다크 모드는 하지 않기로 했다.
 - **사용률 막대**: 길이는 `calcBarWidth`(0~100에서 자름). 색은 상태를 따른다(정상 초록, 주의 주황, 초과 빨강). 바탕은 같은 색의 옅은 버전이다. 초과면 막대 끝 4px를 진한 빨강으로 칠해서 꽉 찬 "주의"와 구분한다. 숫자 글자는 검은색 그대로 두고, 막대는 `aria-hidden`이다.
@@ -149,14 +160,8 @@
 
 순서대로 한다. 한 단계씩 하고 멈춰서 확인받는다. 마감은 2026-11-01이라 작게 만든다.
 
-1. **9-1 브라우저 확인 (사용자)**: CSV 이름 입력(기본값, 비움, 취소, 금지 글자, `.csv` 자동), 구글 시트는 묻지 않음, 백업 이름 취소 시 지우기 취소
-2. **9-2단계: 지난 예산안 보관과 보기 (계획 확정)**
-   - "새로 시작하기"에서 지우기 직전에 `{ 저장시각, 행사목록 }`을 이름표 `student-council-budget-history`로 저장. 최신이 맨 위, 10개 넘으면 가장 오래된 것부터 버림
-   - 표 아래, "새로 시작하기" 구역 위에 "지난 예산안 보기" 구역. 목록 한 줄 `2026-11-01 14:30 · 행사 3개 · 예산 2,300,000원`. 누르면 입력칸 없는 읽기 전용 표와 합계, "닫기" 버튼. 없으면 "아직 지난 예산안이 없습니다."
-   - 복사본으로만 그려서 지금 `events`는 건드리지 않음
-   - `budget.js`: `addHistory(history, events, savedAt)`(새 배열, 원래 배열 안 바꿈), `parseSavedHistory(text)`(깨지면 빈 목록, 깨진 항목만 뺌, 행사 검사는 `parseSavedEvents` 규칙). 테스트 약 12개
-   - 보관 저장이 막히면 "저장되지 않았습니다."를 보여 주고 지우기는 진행
-   - 하지 않는 것: 지난 예산안 지우기, 지금 예산안으로 불러오기, 지난 예산안 CSV 내보내기
+1. **9-2 브라우저 확인 (사용자)**: 새로 시작하기 → 목록에 한 줄 생김 → 누르면 그때 표 → 지금 예산안 그대로 → 새로고침해도 목록 남음 → 닫기
+2. **고칠 것이 있으면 고친다** (확인 결과에 따라).
 3. **README 쓰는 방법 갱신 (Claude)**: 사용률 막대와 상태 기호, 큰 요약 카드, 구글 시트로 열기, 새로 시작하기, 행사 0개 화면, CSV 이름 입력, 지난 예산안 보기를 추가한다. 과정·잘한 점·어려운 점·한계점 자리는 그대로 비워 둔다.
 4. **README 직접 작성 (사용자)**: 과정, 잘한 점, 어려운 점, 한계점(`<!-- 직접 작성 -->`)
 5. (선택) **Safari 확인**: 7-3 목록과 8·9단계 화면을 Safari에서 한 번 더 본다.

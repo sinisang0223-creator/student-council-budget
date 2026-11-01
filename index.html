@@ -92,6 +92,35 @@
       </div>
     </section>
 
+    <!-- "새로 시작하기"로 지우기 전의 예산안. 보기만 하고, 지금 예산안은 바뀌지 않는다 -->
+    <section class="history">
+      <h2>지난 예산안 보기</h2>
+      <p class="history-note">"새로 시작하기"를 누르기 전의 예산안이 최근 10개까지 이 브라우저에 남습니다. 보기만 할 수 있습니다.</p>
+      <ul id="history-list" class="history-list"></ul>
+      <div id="history-view" hidden>
+        <div class="section-header">
+          <h3 id="history-title"></h3>
+          <button id="history-close" type="button" class="secondary-button">닫기</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>행사명</th>
+                <th class="num">예산</th>
+                <th class="num">지출</th>
+                <th class="num">남은 금액</th>
+                <th class="num">사용률</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="history-rows"></tbody>
+            <tfoot id="history-total"></tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- 자주 쓰지 않고 되돌릴 수 없는 버튼이라, 잘못 누르지 않게 맨 아래에 따로 둔다 -->
     <section class="danger-zone">
       <div>

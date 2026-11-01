@@ -227,6 +227,44 @@
     check("잘못된 금액이 있으면 null", makeCsv([{ name: "체육대회", budget: 0, spent: 0 }]), null);
     check("빈 목록이면 머리 줄과 합계 줄만", makeCsv([]), "행사명,예산,지출,남은 금액,사용률,상태\r\n합계,0,0,,,");
 
+    // 지난 예산안 보관
+    const oneEvent = [{ name: "체육대회", budget: 1000, spent: 0 }];
+    const firstHistory = addHistory([], oneEvent, "2026-11-01 14:30");
+    check("첫 보관은 1개", firstHistory.length, 1);
+    check("보관 시각", firstHistory[0].savedAt, "2026-11-01 14:30");
+    check("보관한 행사명", firstHistory[0].events[0].name, "체육대회");
+    check("행사는 복사해서 넣음 (같은 상자가 아님)", firstHistory[0].events[0] === oneEvent[0], false);
+    oneEvent.length = 0;
+    check("지금 목록을 비워도 보관한 내용은 남음", firstHistory[0].events.length, 1);
+    const secondHistory = addHistory(firstHistory, sampleEvents, "2026-11-01 15:00");
+    check("최신이 맨 앞", secondHistory[0].savedAt, "2026-11-01 15:00");
+    check("이전 것은 뒤로", secondHistory[1].savedAt, "2026-11-01 14:30");
+    check("원래 목록은 바뀌지 않음", firstHistory.length, 1);
+    let fullHistory = [];
+    for (let i = 1; i <= 11; i++) {
+      fullHistory = addHistory(fullHistory, sampleEvents, "기록 " + i);
+    }
+    check("11번 보관해도 10개까지만", fullHistory.length, 10);
+    check("가장 최근 것은 남음", fullHistory[0].savedAt, "기록 11");
+    check("가장 오래된 것(기록 1)은 버려짐", fullHistory[9].savedAt, "기록 2");
+
+    // 지난 예산안 불러오기
+    check("저장된 것이 없으면 빈 목록", parseSavedHistory(null).length, 0);
+    check("깨진 JSON이면 빈 목록", parseSavedHistory("abc").length, 0);
+    check("배열이 아니면 빈 목록", parseSavedHistory('{"savedAt":"a"}').length, 0);
+    const savedHistory = parseSavedHistory(JSON.stringify(secondHistory));
+    check("저장한 그대로 2개를 불러옴", savedHistory.length, 2);
+    check("불러온 행사 수", savedHistory[0].events.length, 3);
+    const brokenHistory = parseSavedHistory(JSON.stringify([
+      { savedAt: "좋은 기록", events: [{ name: "체육대회", budget: 1000, spent: 0 }] },
+      { savedAt: "예산 0원", events: [{ name: "체육대회", budget: 0, spent: 0 }] },
+      { savedAt: "", events: [] },
+      { savedAt: "행사 목록 없음" },
+      "글자"
+    ]));
+    check("깨진 항목만 빼고 살림", brokenHistory.length, 1);
+    check("살린 항목", brokenHistory[0].savedAt, "좋은 기록");
+
     // CSV 파일 이름
     check("보통 이름은 통과", checkFileName("학생회-예산-2026-11-01"), null);
     check("공백과 괄호는 통과", checkFileName("2학기 결산 (최종)"), null);

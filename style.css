@@ -420,6 +420,38 @@ button:focus-visible {
 }
 
 /* 맨 아래 "새로 시작하기" 구역. 위쪽 내용과 선으로 떼어 놓는다 */
+/* 지난 예산안 보기: 목록은 버튼을 세로로 쌓고, 표는 행사별 표와 같은 모양을 쓴다 */
+.history {
+  margin-top: 40px;
+}
+.history-note {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.history-empty {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+.history h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+/* 합계 줄은 굵게, 위에 선을 그어 행사 줄과 구분한다 */
+tfoot td {
+  font-weight: 600;
+  border-top: 1px solid var(--color-border-strong);
+}
+
 .danger-zone {
   display: flex;
   flex-wrap: wrap;

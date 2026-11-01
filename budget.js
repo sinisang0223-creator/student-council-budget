@@ -1,5 +1,5 @@
 // 예산 계산과 입력 규칙
-// 사용률·남은 금액·상태 계산, 금액 검사, 저장된 목록 검사, CSV 만들기, CSV 파일 이름 검사를 맡는다.
+// 사용률·남은 금액·상태 계산, 금액 검사, 저장된 목록과 지난 예산안 검사, CSV 만들기, CSV 파일 이름 검사를 맡는다.
 // 화면(HTML)과 분리해 두어서, 계산이 맞는지 test.html로 따로 확인할 수 있다.
 // 잘못된 입력이 들어오면 계산하지 않고 null을 돌려준다.
 
@@ -182,6 +182,55 @@ function parseSavedEvents(text) {
     events.push({ name: item.name.trim(), budget: budget, spent: spent });
   }
   return events;
+}
+
+// 지난 예산안은 최근 것부터 이 개수까지만 보관한다
+const HISTORY_LIMIT = 10;
+
+// 지난 예산안 목록 맨 앞에 지금 예산안을 넣은 새 목록을 돌려준다. 원래 목록은 바꾸지 않는다
+// 지금 예산안은 복사해서 넣는다. 나중에 지금 목록을 비워도 보관한 내용은 그대로 남는다
+// 10개가 넘으면 가장 오래된 것(맨 뒤)부터 버린다
+// 예: addHistory([], [{ name: "체육대회", budget: 1000, spent: 0 }], "2026-11-01 14:30")
+//   → [{ savedAt: "2026-11-01 14:30", events: [{ name: "체육대회", budget: 1000, spent: 0 }] }]
+function addHistory(history, events, savedAt) {
+  const copied = events.map(function (event) {
+    return { name: event.name, budget: event.budget, spent: event.spent };
+  });
+  return [{ savedAt: savedAt, events: copied }].concat(history).slice(0, HISTORY_LIMIT);
+}
+
+// 브라우저에 저장해 둔 글자(JSON)를 지난 예산안 목록으로 되돌린다
+// 저장된 것이 없거나 모양이 깨졌으면 빈 목록. 지난 예산안 하나가 깨졌으면 그것만 빼고 나머지는 살린다
+// 행사 검사는 parseSavedEvents와 같은 규칙을 쓴다
+function parseSavedHistory(text) {
+  if (typeof text !== "string") {
+    return [];
+  }
+  let list;
+  try {
+    list = JSON.parse(text);
+  } catch (e) {
+    return [];
+  }
+  if (!Array.isArray(list)) {
+    return [];
+  }
+
+  const history = [];
+  for (const item of list) {
+    if (typeof item !== "object" || item === null) {
+      continue;
+    }
+    if (typeof item.savedAt !== "string" || item.savedAt.trim() === "") {
+      continue;
+    }
+    const events = parseSavedEvents(JSON.stringify(item.events));
+    if (events === null) {
+      continue;
+    }
+    history.push({ savedAt: item.savedAt, events: events });
+  }
+  return history.slice(0, HISTORY_LIMIT);
 }
 
 // 행사 목록의 총 예산과 총 지출을 더한다.
