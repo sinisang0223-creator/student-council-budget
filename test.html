@@ -227,6 +227,24 @@
     check("잘못된 금액이 있으면 null", makeCsv([{ name: "체육대회", budget: 0, spent: 0 }]), null);
     check("빈 목록이면 머리 줄과 합계 줄만", makeCsv([]), "행사명,예산,지출,남은 금액,사용률,상태\r\n합계,0,0,,,");
 
+    // CSV 파일 이름
+    check("보통 이름은 통과", checkFileName("학생회-예산-2026-11-01"), null);
+    check("공백과 괄호는 통과", checkFileName("2학기 결산 (최종)"), null);
+    for (const char of ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]) {
+      check("쓸 수 없는 글자 " + char, checkFileName("결산" + char + "최종"),
+        "파일 이름에 쓸 수 없는 글자가 있습니다: " + char);
+    }
+    check("쓸 수 없는 글자 여러 개", checkFileName("a/b:c"),
+      "파일 이름에 쓸 수 없는 글자가 있습니다: / :");
+    check("끝에 .csv를 붙임", makeCsvFileName("2학기 결산", "기본"), "2학기 결산.csv");
+    check("이미 .csv면 또 붙이지 않음", makeCsvFileName("결산.csv", "기본"), "결산.csv");
+    check("대문자 .CSV도 또 붙이지 않음", makeCsvFileName("결산.CSV", "기본"), "결산.CSV");
+    check("앞뒤 공백은 지움", makeCsvFileName("  결산  ", "기본"), "결산.csv");
+    check("빈 값이면 기본 이름", makeCsvFileName("", "학생회-예산-2026-11-01"), "학생회-예산-2026-11-01.csv");
+    check("공백만 있으면 기본 이름", makeCsvFileName("   ", "기본"), "기본.csv");
+    check(".csv만 있으면 기본 이름", makeCsvFileName(".csv", "기본"), "기본.csv");
+    check("가운데 .csv는 그대로 두고 붙임", makeCsvFileName("a.csv.b", "기본"), "a.csv.b.csv");
+
     // 금액 표시
     check("800,000원 표시", formatWon(800000), "800,000원");
     check("0원 표시", formatWon(0), "0원");

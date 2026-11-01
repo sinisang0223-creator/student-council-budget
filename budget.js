@@ -1,5 +1,5 @@
 // 예산 계산과 입력 규칙
-// 사용률·남은 금액·상태 계산, 금액 검사, 저장된 목록 검사, CSV 만들기를 맡는다.
+// 사용률·남은 금액·상태 계산, 금액 검사, 저장된 목록 검사, CSV 만들기, CSV 파일 이름 검사를 맡는다.
 // 화면(HTML)과 분리해 두어서, 계산이 맞는지 test.html로 따로 확인할 수 있다.
 // 잘못된 입력이 들어오면 계산하지 않고 null을 돌려준다.
 
@@ -268,6 +268,36 @@ function makeCsv(events) {
   ].join(","));
   // 줄바꿈은 엑셀이 잘 읽는 \r\n을 쓴다
   return lines.join("\r\n");
+}
+
+// 파일 이름에 쓸 수 없는 글자. 윈도우와 맥에서 파일 이름에 넣으면 저장이 안 되거나 폴더로 읽힌다
+const BAD_FILE_NAME_CHARS = ["/", "\\", ":", "*", "?", '"', "<", ">", "|"];
+
+// 사용자가 입력한 파일 이름을 검사한다. 쓸 수 있으면 null, 아니면 이유 문구
+// 예: "2학기/결산" → "파일 이름에 쓸 수 없는 글자가 있습니다: /"
+function checkFileName(text) {
+  const found = BAD_FILE_NAME_CHARS.filter(function (char) {
+    return String(text).includes(char);
+  });
+  if (found.length > 0) {
+    return "파일 이름에 쓸 수 없는 글자가 있습니다: " + found.join(" ");
+  }
+  return null;
+}
+
+// 입력한 파일 이름을 내려받을 CSV 파일 이름으로 만든다. 끝에 .csv를 붙인다
+// 앞뒤 공백은 지우고, 이미 .csv로 끝나면(대문자 포함) 또 붙이지 않는다
+// 비어 있으면 기본 이름(defaultName)을 쓴다. 쓸 수 없는 글자 검사는 checkFileName이 먼저 한다
+// 예: "2학기 결산" → "2학기 결산.csv", "결산.CSV" → "결산.CSV", "" → defaultName + ".csv"
+function makeCsvFileName(text, defaultName) {
+  let name = String(text).trim();
+  if (name.replace(/\.csv$/i, "").trim() === "") {
+    name = defaultName;
+  }
+  if (!/\.csv$/i.test(name)) {
+    name = name + ".csv";
+  }
+  return name;
 }
 
 // 금액을 화면용 글자로 바꾼다. 예: 800000 → "800,000원", -50000 → "-50,000원"

@@ -366,9 +366,36 @@ function downloadCsv(fileName) {
   }, 1000);
 }
 
-// "CSV로 내보내기" 버튼을 누르면 지금 행사 목록을 CSV 파일로 내려받는다
+// 기본 파일 이름(.csv 없이). 입력창에 미리 채워 두고, 비워 두면 이 이름을 쓴다
+function defaultCsvName() {
+  return "학생회-예산-" + todayText();
+}
+
+// 입력창으로 파일 이름을 묻는다. 취소하면 null, 아니면 .csv를 붙인 파일 이름
+// 쓸 수 없는 글자가 있으면 이유를 알려 주고, 입력한 글자를 그대로 둔 채 다시 묻는다
+function askCsvFileName(defaultName) {
+  let text = defaultName;
+  while (true) {
+    const input = window.prompt("파일 이름을 입력해 주세요. 끝에 .csv는 자동으로 붙습니다.", text);
+    if (input === null) {
+      return null;
+    }
+    const error = checkFileName(input);
+    if (error === null) {
+      return makeCsvFileName(input, defaultName);
+    }
+    window.alert(error);
+    text = input;
+  }
+}
+
+// "CSV로 내보내기" 버튼: 파일 이름을 물은 뒤 지금 행사 목록을 CSV 파일로 내려받는다
 function handleExportCsv() {
-  downloadCsv("학생회-예산-" + todayText() + ".csv");
+  const fileName = askCsvFileName(defaultCsvName());
+  if (fileName === null) {
+    return;
+  }
+  downloadCsv(fileName);
 }
 
 // "새로 시작하기" 버튼: 확인을 받고, 지금 내용을 CSV로 백업한 뒤, 행사를 모두 지운다
@@ -383,8 +410,13 @@ function handleResetEvents() {
     return;
   }
 
-  // 지우기 전에 백업한다. 이름에 시각을 넣어 보통 내보내기 파일과 구분한다
-  downloadCsv("학생회-예산-백업-" + todayText() + "-" + timeText() + ".csv");
+  // 지우기 전에 백업한다. 기본 이름에 시각을 넣어 보통 내보내기 파일과 구분한다
+  // 이름 입력을 취소하면 백업 없이 지워지지 않게 지우기 전체를 취소한다
+  const backupName = askCsvFileName("학생회-예산-백업-" + todayText() + "-" + timeText());
+  if (backupName === null) {
+    return;
+  }
+  downloadCsv(backupName);
 
   // events는 const라서 새 목록을 넣을 수 없으므로, 안의 행사를 모두 빼서 비운다
   events.length = 0;
@@ -399,8 +431,9 @@ const SHEETS_URL = "https://sheets.new";
 
 // "구글 시트로 열기" 버튼: CSV를 내려받고, 새 창에 빈 구글 시트를 연다
 // 구글 시트에 내용을 자동으로 넣으려면 API가 필요하므로, 파일은 사용자가 직접 올리도록 안내한다
+// 파일 이름은 묻지 않고 기본 이름을 쓴다. 입력창을 거치면 브라우저가 새 창을 팝업으로 막을 수 있다
 function handleOpenSheets() {
-  handleExportCsv();
+  downloadCsv(defaultCsvName() + ".csv");
   // noopener: 새 창이 이 페이지를 건드리지 못하게 한다
   window.open(SHEETS_URL, "_blank", "noopener");
   document.getElementById("sheets-help").hidden = false;
